@@ -1,0 +1,17 @@
+[server]
+port = 8501
+enableStaticServing = true
+
+[client]
+showErrorDetails = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+#base = "dark"
+#primaryColor = "rgb(29, 154, 214, 0.9)"
+#backgroundColor = "rgb(29, 154, 214, 0.5)"
+#secondaryBackgroundColor="rgb(10, 150, 210, 0.9)"
+#textColor="#F5F5F5"
+#font="sans serif"

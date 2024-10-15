@@ -159,14 +159,39 @@ Upload customer reviews or feedback, and TapVision will provide sentiment analys
 
 ---
 
+**Use Case:**  
+Ask a question or topic, and the AI assistant will provide summaries, explanations, or study plans.
+
+**Setup:**
+- Deploy Amazon Bedrock with a large language model like Claude.
+- Integrate with a frontend (e.g., Streamlit) for interaction.
+
+---
+
+## **2. GenAI Market Sage**
+**Description:**  
+An intelligent financial market assistant that provides insights into stocks, crypto, or other market data. It uses real-time data feeds and generates insights, forecasts, or investment suggestions.
+
+**Key Components:**
+- **Amazon Bedrock** for NLP and financial forecasting.
+- **Data Sources:** Integrated market APIs (e.g., Alpha Vantage) for real-time stock data.
+- **LLM** model to generate stock analysis.
+
+**Use Case:**  
+Input a stock symbol, and the assistant will analyze trends and provide insights on stock performance, with predictions on possible future movements.
+
+**Setup:**
+- Use a market data API.
+- Deploy a large language model in Amazon Bedrock for real-time analysis.
+
+---
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
 
-This library is licensed under the MIT-0 License. See the LICENSE file.
-<<<<<<< HEAD
-=======
 
->>>>>>> 4c7efd8 (Initial commit)
+This library is licensed under the MIT-0 License. See the LICENSE file.
+
+
