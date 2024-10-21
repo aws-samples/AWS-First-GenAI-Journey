@@ -1,5 +1,4 @@
-### **Technical Guide: GenAI Demos using Amazon Bedrock**
----
+## AWS-First-GenAI-Journey
 
 ### **1. AWS Educational Assistant**
 **Description:**  
@@ -35,4 +34,13 @@ Input a stock symbol, and the assistant will analyze trends and provide insights
 - Use a market data API.
 - Deploy a large language model in Amazon Bedrock for real-time analysis.
 
----
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the LICENSE file.
+
+
+

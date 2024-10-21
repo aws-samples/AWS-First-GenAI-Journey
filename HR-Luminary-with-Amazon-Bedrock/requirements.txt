@@ -1,0 +1,17 @@
+transformers
+Pillow
+pypdf
+jq
+langchain==0.0.330
+streamlit
+boto3
+awscli
+pandas-datareader
+langchain-experimental
+bs4
+setuptools
+PyPDF2
+pypdf
+langchain_community
+google-search-results
+python-dotenv
