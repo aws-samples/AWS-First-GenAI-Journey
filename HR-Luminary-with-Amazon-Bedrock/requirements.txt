@@ -2,7 +2,7 @@ transformers
 Pillow
 pypdf
 jq
-langchain==0.0.330
+langchain==0.2.10
 streamlit
 boto3
 awscli
