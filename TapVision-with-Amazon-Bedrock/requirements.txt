@@ -3,7 +3,7 @@ transformers
 Pillow
 pypdf
 jq
-langchain==0.0.343
+langchain==0.2.10
 streamlit
 botocore
 boto3
