@@ -1,0 +1,9 @@
+boto3
+botocore>=1.35.74
+numpy
+matplotlib
+streamlit
+opencv-python
+ffmpeg-python
+ipython
+sagemaker

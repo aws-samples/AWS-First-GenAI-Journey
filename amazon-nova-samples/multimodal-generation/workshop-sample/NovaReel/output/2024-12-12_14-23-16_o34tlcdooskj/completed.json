@@ -1,0 +1,26 @@
+{
+  "ResponseMetadata": {
+    "RequestId": "1bdf350a-69b1-4ffd-ab46-e85de545d982",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "date": "Thu, 12 Dec 2024 07:27:30 GMT",
+      "content-type": "application/json",
+      "content-length": "461",
+      "connection": "keep-alive",
+      "x-amzn-requestid": "1bdf350a-69b1-4ffd-ab46-e85de545d982"
+    },
+    "RetryAttempts": 0
+  },
+  "invocationArn": "arn:aws:bedrock:us-east-1:590183822512:async-invoke/o34tlcdooskj",
+  "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-reel-v1:0",
+  "clientRequestToken": "f89f3c2a-fb92-4cdf-9093-9940b4ac4d79",
+  "status": "Completed",
+  "submitTime": "2024-12-12 07:23:16+00:00",
+  "lastModifiedTime": "2024-12-12 07:27:21+00:00",
+  "endTime": "2024-12-12 07:27:21+00:00",
+  "outputDataConfig": {
+    "s3OutputDataConfig": {
+      "s3Uri": "s3://ovg-bucket-us-east-1-590183822512/o34tlcdooskj"
+    }
+  }
+}

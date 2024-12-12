@@ -1,0 +1,12 @@
+{
+  "taskType": "TEXT_VIDEO",
+  "textToVideoParams": {
+    "text": "fabric shirts ripple in the strong breeze, white collared t-shirts with black palm tree graphics in their centers hang rippling on a clothes line between two real palm trees. Lush greenery in the foreground opens to a beautiful beach and waves in the background. Soft sunlight."
+  },
+  "videoGenerationConfig": {
+    "durationSeconds": 6,
+    "fps": 24,
+    "dimension": "1280x720",
+    "seed": 1841511189
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "bedrock-conversation-2024",
+  "system": [
+    {
+      "text": "You are good at tasks requiring mathematical reasoning and natural language understanding. Start your response with a correct answer, and provide the rationale behind your answer"
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text":"{question}"
+        }
+      ]},
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "{answer}"
+        }
+      ]
+    }
+  ]
+}
