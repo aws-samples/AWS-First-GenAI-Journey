@@ -14,7 +14,7 @@ gitdb==4.0.11
 GitPython==3.1.40
 idna==3.4
 importlib-metadata==6.8.0
-Jinja2==3.1.2
+Jinja2==3.1.5
 jsonschema==4.19.1
 jsonschema-specifications==2023.7.1
 markdown-it-py==3.0.0
