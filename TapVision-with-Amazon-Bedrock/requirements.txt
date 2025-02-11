@@ -1,5 +1,5 @@
 faiss-cpu
-transformers==4.38.0
+transformers==4.48.0
 Pillow
 pypdf==3.17.0
 jq
