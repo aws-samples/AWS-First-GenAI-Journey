@@ -9,7 +9,7 @@ from typing import List, Optional
 import json
 
 # Constants and configurations
-CLAUDE_MODEL = "anthropic.claude-3-sonnet-20240229-v1:0"
+CLAUDE_MODEL = "anthropic.claude-sonnet-4-6"
 
 class BedrockClient:
     def __init__(self):

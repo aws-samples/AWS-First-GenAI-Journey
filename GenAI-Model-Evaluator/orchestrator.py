@@ -57,8 +57,8 @@ bedrock_runtime = boto3.client(
 )
 
 
-llm_for_text_generation = ChatBedrock(model_id="anthropic.claude-3-sonnet-20240229-v1:0", client=bedrock_runtime) ##TODO update to allow user to select the model they want to use
-llm_for_evaluation = ChatBedrock(model_id="anthropic.claude-3-sonnet-20240229-v1:0", client=bedrock_runtime)
+llm_for_text_generation = ChatBedrock(model_id="anthropic.claude-sonnet-4-6", client=bedrock_runtime) ##TODO update to allow user to select the model they want to use
+llm_for_evaluation = ChatBedrock(model_id="anthropic.claude-sonnet-4-6", client=bedrock_runtime)
 
 metrics = [
         faithfulness,
@@ -330,7 +330,7 @@ def final_evaluator(pdf_path, models, task_prompt="Summarize this document in 2 
     # Read CSV data from StringIO object (as a string)
     csv_string = csv_data.getvalue()
     # ask the model which is the best model to use for cost and performance
-    invoke_costs_eval_response = evaluate_model_performance(csv_string, "anthropic.claude-3-sonnet-20240229-v1:0")
+    invoke_costs_eval_response = evaluate_model_performance(csv_string, "anthropic.claude-sonnet-4-6")
     # chart out the performance and cost results
     plot_model_comparisons(results_df)
     # plot the performance rubric scores 
@@ -465,7 +465,7 @@ def final_rag_evaluator(csv_path_1, csv_path_2, knowledge_bases):
     # Read CSV data from StringIO object (as a string)
     csv_string = csv_data.getvalue()
     # ask the model which is the best model to use for cost and performance
-    invoke_costs_eval_response = evaluate_rag_performance(csv_string, "anthropic.claude-3-sonnet-20240229-v1:0")
+    invoke_costs_eval_response = evaluate_rag_performance(csv_string, "anthropic.claude-sonnet-4-6")
     # chart out the performance and cost results
     plot_rag_comparisons(results_df)
     # plot the performance rubric scores 

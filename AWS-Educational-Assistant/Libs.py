@@ -1,5 +1,5 @@
 import os
-import boto3, json
+import boto3, json, logging
 from dotenv import load_dotenv
 from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
 from langchain.chains import RetrievalQA
@@ -9,6 +9,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 def call_claude_sonet_stream(prompt):
 
@@ -29,7 +31,7 @@ def call_claude_sonet_stream(prompt):
 
     body = json.dumps(prompt_config)
 
-    modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    modelId = "anthropic.claude-sonnet-4-6"
     accept = "application/json"
     contentType = "application/json"
 
@@ -43,9 +45,13 @@ def call_claude_sonet_stream(prompt):
         for event in stream:
             chunk = event.get('chunk')
             if chunk:
-                 delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                 if delta:
-                     yield delta.get("text")    
+                try:
+                    delta = json.loads(chunk.get('bytes').decode()).get("delta")
+                    if delta:
+                        yield delta.get("text")
+                except (json.JSONDecodeError, UnicodeDecodeError, AttributeError) as e:
+                    logger.warning(f"Failed to parse stream chunk: {e}")
+                    continue
                      
                      
                      
@@ -232,7 +238,7 @@ def search(question, callback):
     
     # Initialize the BedrockChat LLM with streaming enabled
     llm = BedrockChat(
-        model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        model_id="anthropic.claude-sonnet-4-6",
         model_kwargs=model_kwargs_claude,
         streaming=True,
         callbacks=[callback]

@@ -175,6 +175,8 @@ def model_selection_section():
     model_categories = {
         "🌟 Premium Models": {
             "Anthropic": [
+                'anthropic.claude-sonnet-4-6',
+                'anthropic.claude-haiku-4-5-20251001-v1:0',
                 'anthropic.claude-3-haiku-20240307-v1:0',
                 'anthropic.claude-3-sonnet-20240229-v1:0',
                 'anthropic.claude-v2:1'

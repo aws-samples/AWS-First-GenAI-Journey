@@ -1,5 +1,6 @@
 import git
 import os
+import re
 import sys
 import datetime
 import chardet
@@ -32,11 +33,21 @@ def clear_report_directory():
         shutil.rmtree(report_path) 
     os.makedirs(report_path) 
 
+def _sanitize_name(name):
+    """Sanitize a name to prevent path traversal. Only allow alphanumeric, hyphens, underscores, and dots."""
+    sanitized = re.sub(r'[^a-zA-Z0-9._-]', '_', name)
+    # Remove path traversal sequences and leading dots
+    sanitized = sanitized.replace('..', '')
+    sanitized = sanitized.lstrip('.')
+    if not sanitized:
+        sanitized = 'unnamed'
+    return sanitized
+
 def analyze_repository(repo_url):
     clear_report_directory() 
     
-    repo_name = repo_url.split("/")[-1].replace(".git", "")
-    local_repo_path = f"source/{repo_name}"
+    repo_name = _sanitize_name(repo_url.split("/")[-1].replace(".git", ""))
+    local_repo_path = os.path.join("source", repo_name)
 
     if os.path.isdir(local_repo_path):
         repo = git.Repo(local_repo_path)
@@ -58,9 +69,14 @@ def analyze_local_path(local_path):
     clear_report_directory()
     
     if local_path.endswith('.zip'):
-        repo_name = os.path.basename(local_path).replace('.zip', '')
+        repo_name = _sanitize_name(os.path.basename(local_path).replace('.zip', ''))
         extract_path = os.path.join(os.getcwd(), repo_name)
         with zipfile.ZipFile(local_path, 'r') as zip_ref:
+            # Validate zip entries to prevent path traversal (zip slip)
+            for member in zip_ref.namelist():
+                member_path = os.path.realpath(os.path.join(extract_path, member))
+                if not member_path.startswith(os.path.realpath(extract_path)):
+                    raise ValueError(f"Unsafe zip entry detected: {member}")
             zip_ref.extractall(extract_path)
         analyze_files(extract_path)
         shutil.rmtree(extract_path)  
@@ -72,8 +88,8 @@ def analyze_local_path(local_path):
 
 max_analyzing_files = int(os.getenv("QUOTAS_FILE_ANALLYZING"))
 def analyze_files(path):
-    repo_name = os.path.basename(path)
-    report_dir = f'report/{repo_name}'
+    repo_name = _sanitize_name(os.path.basename(path))
+    report_dir = os.path.join('report', repo_name)
 
     if not os.path.exists(report_dir):
         os.makedirs(report_dir)
@@ -107,7 +123,7 @@ def analyze_files(path):
                     continue
                     
                 now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S").replace(':', '-')
-                report_file_path = f'report/{repo_name}/{now}.md'
+                report_file_path = os.path.join('report', repo_name, f'{now}.md')
 
                 with open(report_file_path, 'a') as reporting:
                     sys.stdout = reporting

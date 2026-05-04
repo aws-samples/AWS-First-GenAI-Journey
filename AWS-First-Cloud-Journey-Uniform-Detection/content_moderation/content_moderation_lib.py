@@ -175,7 +175,7 @@ def analyze_frame(session, frame):
         body = get_content_moderation_prompt(frame)
         response = session.invoke_model_with_response_stream(
             body=body,
-            modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+            modelId="anthropic.claude-sonnet-4-6",
             contentType="application/json",
             accept="application/json"
         )
@@ -228,7 +228,7 @@ def get_response_from_model(prompt_content, content_bytes, content_type="image")
             
             response = bedrock.invoke_model_with_response_stream(
                 body=body,
-                modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+                modelId="anthropic.claude-sonnet-4-6",
                 contentType="application/json",
                 accept="application/json"
             )
@@ -238,9 +238,12 @@ def get_response_from_model(prompt_content, content_bytes, content_type="image")
                 for event in stream:
                     chunk = event.get('chunk')
                     if chunk:
-                        delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                        if delta:
-                            yield delta.get("text")
+                        try:
+                            delta = json.loads(chunk.get('bytes').decode()).get("delta")
+                            if delta:
+                                yield delta.get("text")
+                        except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
+                            continue
         else:
             # Extract and analyze video frames
             frames, timestamps, duration = extract_frames(content_bytes)
