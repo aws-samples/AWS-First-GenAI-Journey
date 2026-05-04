@@ -1,5 +1,5 @@
 import os
-import boto3, json
+import boto3, json, logging
 from dotenv import load_dotenv
 from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
 from langchain.chains import RetrievalQA
@@ -11,6 +11,8 @@ import base64
 from io import BytesIO
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 def call_claude_sonet_stream(prompt):
 
@@ -31,7 +33,7 @@ def call_claude_sonet_stream(prompt):
 
     body = json.dumps(prompt_config)
 
-    modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    modelId = "anthropic.claude-sonnet-4-6"
     accept = "application/json"
     contentType = "application/json"
 
@@ -45,9 +47,13 @@ def call_claude_sonet_stream(prompt):
         for event in stream:
             chunk = event.get('chunk')
             if chunk:
-                 delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                 if delta:
-                     yield delta.get("text")    
+                try:
+                    delta = json.loads(chunk.get('bytes').decode()).get("delta")
+                    if delta:
+                        yield delta.get("text")
+                except (json.JSONDecodeError, UnicodeDecodeError, AttributeError) as e:
+                    logger.warning(f"Failed to parse stream chunk: {e}")
+                    continue
 
 
 
@@ -67,7 +73,9 @@ def get_base64_from_bytes(image_bytes):
 
 #load the bytes from a file on disk
 def get_bytes_from_file(file_path):
-    with open(file_path, "rb") as image_file:
+    # Resolve to absolute path and validate it doesn't escape the working directory
+    resolved = os.path.realpath(file_path)
+    with open(resolved, "rb") as image_file:
         file_bytes = image_file.read()
     return file_bytes
 
@@ -112,16 +120,20 @@ def get_response_from_model(prompt_content, image_bytes):
     session = boto3.Session()
     bedrock = session.client(service_name='bedrock-runtime') #creates a Bedrock client
     body = init(prompt_content, image_bytes)    
-    response = bedrock.invoke_model_with_response_stream(body=body, modelId="anthropic.claude-3-5-sonnet-20240620-v1:0", contentType="application/json", accept="application/json")
+    response = bedrock.invoke_model_with_response_stream(body=body, modelId="anthropic.claude-sonnet-4-6", contentType="application/json", accept="application/json")
         
     stream = response['body']
     if stream:
         for event in stream:
             chunk = event.get('chunk')
             if chunk:
-                 delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                 if delta:
-                     yield delta.get("text")    
+                try:
+                    delta = json.loads(chunk.get('bytes').decode()).get("delta")
+                    if delta:
+                        yield delta.get("text")
+                except (json.JSONDecodeError, UnicodeDecodeError, AttributeError) as e:
+                    logger.warning(f"Failed to parse stream chunk: {e}")
+                    continue
 
 prizm = """
     {

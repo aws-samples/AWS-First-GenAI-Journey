@@ -10,7 +10,7 @@ anthropic = Anthropic()
 
 # Knowledge base and model configuration
 knowledge_base_id = ('F3BT8DD8E8'),  # Previously EWVHJIY9AS
-modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"  # Previously claude-3-haiku model
+modelId = "anthropic.claude-sonnet-4-6"  # Previously claude-3-haiku model
 
 # Streamlit page configuration
 st.set_page_config(

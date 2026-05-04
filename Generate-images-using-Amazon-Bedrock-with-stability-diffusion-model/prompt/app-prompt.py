@@ -6,7 +6,7 @@ from botocore.exceptions import ClientError
 client = boto3.client("bedrock-runtime", region_name="us-west-2")
 
 # Define Claude 3 Sonnet model ID
-model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
+model_id = "anthropic.claude-sonnet-4-6"
 
 # Function to call AWS Bedrock with user input
 def generate_prompts(user_topic):

@@ -22,7 +22,7 @@ logger.setLevel(logging.INFO)
 
 session = boto3.Session(region_name="us-east-1")
 
-MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
+MODEL_ID = "amazon.nova-2-lite-v1:0"
 
 
 class ModelOutput(BaseModel):
@@ -39,9 +39,19 @@ def save_pdf_file(file):
     logger.debug(f"Saving PDF file {file}")
     if not os.path.exists("files"):
         os.makedirs("files")
-    if os.path.exists(os.path.join("files", file.name.replace(" ", "_"))):
-        os.remove(os.path.join("files", file.name.replace(" ", "_")))
-    with open(os.path.join("files", file.name.replace(" ", "_")), "wb") as f:
+    # Sanitize filename to prevent path traversal
+    safe_name = os.path.basename(file.name).replace(" ", "_")
+    # Remove any remaining path traversal characters
+    safe_name = safe_name.replace("..", "").lstrip(".")
+    if not safe_name:
+        safe_name = f"{uuid4()}.pdf"
+    file_path = os.path.join("files", safe_name)
+    # Verify the resolved path stays within the files directory
+    if not os.path.realpath(file_path).startswith(os.path.realpath("files")):
+        raise ValueError(f"Invalid filename detected: {file.name}")
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    with open(file_path, "wb") as f:
         f.write(file.getvalue())
 
 

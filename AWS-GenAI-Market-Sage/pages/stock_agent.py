@@ -44,7 +44,7 @@ base.init_animation()
 anthropic = Anthropic()
 knowledge_base_id=("EWVHJIY9AS")
 
-modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+modelId = "anthropic.claude-sonnet-4-6"
     
 def get_llm():      
     # Configure the model to use

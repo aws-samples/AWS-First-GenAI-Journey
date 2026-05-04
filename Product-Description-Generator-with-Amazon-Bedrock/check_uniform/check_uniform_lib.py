@@ -99,7 +99,7 @@ def get_response_from_model(image_bytes):
     
     response = bedrock.invoke_model_with_response_stream(
         body=body,
-        modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        modelId="anthropic.claude-sonnet-4-6",
         contentType="application/json",
         accept="application/json"
     )

@@ -86,7 +86,7 @@ def analyze_image(image_name, text) -> str:
     # formatting the prompt as a json string
     json_prompt = json.dumps(prompt)
     # invoking Claude3, passing in our prompt
-    response = bedrock.invoke_model(body=json_prompt, modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+    response = bedrock.invoke_model(body=json_prompt, modelId="anthropic.claude-sonnet-4-6",
                                     accept="application/json", contentType="application/json")
     # getting the response from Claude3 and parsing it to return to the end user
     response_body = json.loads(response.get('body').read())

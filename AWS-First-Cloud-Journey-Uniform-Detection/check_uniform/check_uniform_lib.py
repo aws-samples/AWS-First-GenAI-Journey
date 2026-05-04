@@ -1,10 +1,13 @@
 import boto3
 import json
+import logging
 import base64
 from io import BytesIO
 import sys
 sys.path.append("../Libs")
 import Libs as glib 
+
+logger = logging.getLogger(__name__)
 
 def get_check_uniform_request_body(image_bytes=None):
     # Load AWS First Cloud Journey uniform examples
@@ -99,7 +102,7 @@ def get_response_from_model(image_bytes):
     
     response = bedrock.invoke_model_with_response_stream(
         body=body,
-        modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        modelId="anthropic.claude-sonnet-4-6",
         contentType="application/json",
         accept="application/json"
     )
@@ -109,6 +112,10 @@ def get_response_from_model(image_bytes):
         for event in stream:
             chunk = event.get('chunk')
             if chunk:
-                delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                if delta:
-                    yield delta.get("text")
+                try:
+                    delta = json.loads(chunk.get('bytes').decode()).get("delta")
+                    if delta:
+                        yield delta.get("text")
+                except (json.JSONDecodeError, UnicodeDecodeError, AttributeError) as e:
+                    logger.warning(f"Failed to parse stream chunk: {e}")
+                    continue

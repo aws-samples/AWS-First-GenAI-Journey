@@ -13,7 +13,7 @@ from langchain_core.outputs import ChatGenerationChunk
 class ClaudeOCRProcessor:
     """Handles OCR processing using Claude 3.5 Sonnet"""
     
-    DEFAULT_MODEL = 'anthropic.claude-3-sonnet-20240229-v1:0'
+    DEFAULT_MODEL = 'anthropic.claude-sonnet-4-6'
     
     def __init__(
         self,

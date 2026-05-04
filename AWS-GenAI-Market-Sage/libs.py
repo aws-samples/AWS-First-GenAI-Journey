@@ -25,7 +25,7 @@ def call_claude_sonet_stream(prompt):
         ],
     }
 
-    modelId = "anthropic.claude-3-sonnet-20240229-v1:0"
+    modelId = "anthropic.claude-sonnet-4-6"
 
     bedrock = boto3.client(service_name="bedrock-runtime")  
     response = bedrock.invoke_model_with_response_stream(
@@ -136,7 +136,7 @@ def search(question, callback):
 
     model_kwargs_claude = { "temperature": 0.5, "top_p": 1}
     llm = BedrockChat(
-        model_id="anthropic.claude-3-sonnet-20240229-v1:0",  # Updated model ID
+        model_id="anthropic.claude-sonnet-4-6",  # Updated model ID
         client=bedrock_client,
         model_kwargs=model_kwargs_claude,
         streaming=True,
@@ -186,7 +186,7 @@ def searchOld(question, callback):
     Answer: 
     """
     model_kwargs_claude = {"max_tokens": 2000}
-    llm = BedrockChat(model_id="anthropic.claude-3-5-sonnet-20240620-v1:0"
+    llm = BedrockChat(model_id="anthropic.claude-sonnet-4-6"
                       , model_kwargs=model_kwargs_claude
                       , streaming=True
                       , callbacks=[callback])

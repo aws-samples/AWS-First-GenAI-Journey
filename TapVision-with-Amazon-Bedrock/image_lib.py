@@ -15,7 +15,7 @@ bedrock = session.client(
     endpoint_url=os.environ.get("BWB_ENDPOINT_URL")
 ) 
 
-bedrock_model_id = "stability.stable-diffusion-xl-v1" #use the Stable Diffusion model
+bedrock_model_id = "amazon.nova-canvas-v1:0" #use the Amazon Nova Canvas model
 
 
 
