@@ -57,7 +57,7 @@ openai==1.50.2
 orjson==3.10.7
 packaging==24.1
 pandas==2.2.3
-pillow==10.4.0
+pillow==12.1.0
 promptic==0.7.5
 psutil==5.9.8
 pydantic==2.9.2
