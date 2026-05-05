@@ -77,7 +77,7 @@ orjson==3.10.5
 packaging==24.0
 palettable==3.3.3
 pandas==2.2.1
-pillow==10.3.0
+pillow==12.1.0
 pip==23.3
 prometheus_client==0.20.0
 protobuf==4.25.3
