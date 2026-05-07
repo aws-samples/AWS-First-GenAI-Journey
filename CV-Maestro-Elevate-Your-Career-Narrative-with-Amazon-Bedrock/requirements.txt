@@ -1,5 +1,5 @@
 transformers
-Pillow
+Pillow>=12.1.0
 pypdf
 jq
 langchain==0.3.0

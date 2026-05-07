@@ -9,7 +9,7 @@ import os
 import boto3
 
 
-MODEL_ID = os.environ.get('MODEL_ID', 'anthropic.claude-3-5-sonnet-20240620-v1:0')
+MODEL_ID = os.environ.get('MODEL_ID', 'anthropic.claude-sonnet-4-6')
 
 
 def build_chain():

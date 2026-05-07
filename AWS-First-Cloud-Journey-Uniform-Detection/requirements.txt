@@ -10,7 +10,7 @@ torch
 
 # Image and Video Processing
 opencv-python-headless
-Pillow
+Pillow>=12.1.0
 numpy
 
 # Document processing

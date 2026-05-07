@@ -151,7 +151,7 @@ def get_response_from_model(prompt_content=None, image_bytes=None, mask_prompt=N
     
     response = bedrock.invoke_model_with_response_stream(
         body=body,
-        modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        modelId="anthropic.claude-sonnet-4-6",
         contentType="application/json",
         accept="application/json"
     )

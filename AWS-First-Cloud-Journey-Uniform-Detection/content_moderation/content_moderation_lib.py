@@ -175,7 +175,7 @@ def analyze_frame(session, frame):
         body = get_content_moderation_prompt(frame)
         response = session.invoke_model_with_response_stream(
             body=body,
-            modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+            modelId="anthropic.claude-sonnet-4-6",
             contentType="application/json",
             accept="application/json"
         )
@@ -228,7 +228,7 @@ def get_response_from_model(prompt_content, content_bytes, content_type="image")
             
             response = bedrock.invoke_model_with_response_stream(
                 body=body,
-                modelId="anthropic.claude-3-5-sonnet-20240620-v1:0",
+                modelId="anthropic.claude-sonnet-4-6",
                 contentType="application/json",
                 accept="application/json"
             )

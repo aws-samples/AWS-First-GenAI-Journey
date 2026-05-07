@@ -27,7 +27,7 @@ models = lst_models()
 st.sidebar.selectbox(
     label='Model',
     options=models,
-    index=models.index(next(filter(lambda n: n.get('modelId') == 'anthropic.claude-3-haiku-20240307-v1:0', models))),
+    index=models.index(next(filter(lambda n: n.get('modelId') == 'amazon.nova-2-lite-v1:0', models))),
     format_func=lambda model: model['modelId'].split(".")[1],
     key='model'
 )

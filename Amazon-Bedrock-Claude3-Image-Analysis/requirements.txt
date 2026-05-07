@@ -8,7 +8,7 @@ certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
 gitdb==4.0.11
-GitPython==3.1.42
+GitPython==3.1.43
 idna==3.7
 importlib-metadata==7.0.1
 Jinja2==3.1.4
@@ -21,7 +21,7 @@ mdurl==0.1.2
 numpy==1.26.4
 packaging==23.2
 pandas==2.2.1
-pillow==10.2.0
+pillow==12.1.0
 pip==23.3
 protobuf==4.25.3
 pyarrow==15.0.0
@@ -31,7 +31,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.1
 referencing==0.33.0
-requests==2.32.2
+requests==2.33.0
 rich==13.7.1
 rpds-py==0.18.0
 s3transfer==0.10.0
@@ -46,7 +46,7 @@ tornado==6.4.2
 typing_extensions==4.10.0
 tzdata==2024.1
 tzlocal==5.2
-urllib3==1.26.19
+urllib3==2.6.3
 validators==0.22.0
 wheel==0.41.2
 zipp==3.19.1

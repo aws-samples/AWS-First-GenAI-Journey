@@ -29,7 +29,7 @@ def call_claude_sonet_stream(prompt):
 
     body = json.dumps(prompt_config)
 
-    modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    modelId = "anthropic.claude-sonnet-4-6"
     accept = "application/json"
     contentType = "application/json"
 
@@ -232,7 +232,7 @@ def search(question, callback):
     
     # Initialize the BedrockChat LLM with streaming enabled
     llm = BedrockChat(
-        model_id="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        model_id="anthropic.claude-sonnet-4-6",
         model_kwargs=model_kwargs_claude,
         streaming=True,
         callbacks=[callback]

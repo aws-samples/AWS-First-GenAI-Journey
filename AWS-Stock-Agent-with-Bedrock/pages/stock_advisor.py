@@ -10,8 +10,8 @@ anthropic = Anthropic()
 
 #knowledge_base_id=('EWVHJIY9AS'),
 knowledge_base_id=('GDPSQICWNW'),
-#modelId = "anthropic.claude-3-haiku-20240307-v1:0"
-modelId = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+#modelId = "amazon.nova-2-lite-v1:0"
+modelId = "anthropic.claude-sonnet-4-6"
 
 st.set_page_config(page_title="Tra cứu thông tin chứng khoán", page_icon="img/favicon.ico", layout="wide")
 st.markdown(

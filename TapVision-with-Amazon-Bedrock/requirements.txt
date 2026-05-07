@@ -1,6 +1,6 @@
 faiss-cpu
 transformers==4.38.0
-Pillow
+Pillow>=12.1.0
 pypdf==3.17.0
 jq
 langchain==0.2.10

@@ -1,8 +1,15 @@
 import streamlit as st
 import os
+import re
 from code_review.git_handler import analyze_repository, output_messages
 from code_review.bedrock_analyze import analyze_file_contents
 import chardet
+
+def _sanitize_name(name):
+    """Sanitize a name to prevent path traversal."""
+    sanitized = re.sub(r'[^a-zA-Z0-9._-]', '_', name)
+    sanitized = sanitized.replace('..', '').lstrip('.')
+    return sanitized or 'unnamed'
 
 def analyze_uploaded_file(uploaded_file):
     try:

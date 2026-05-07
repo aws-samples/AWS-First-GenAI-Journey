@@ -22,7 +22,7 @@ logger.setLevel(logging.INFO)
 
 session = boto3.Session(region_name="us-east-1")
 
-MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
+MODEL_ID = "amazon.nova-2-lite-v1:0"
 
 
 class ModelOutput(BaseModel):

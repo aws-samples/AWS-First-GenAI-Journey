@@ -1,4 +1,5 @@
 import git
+import re
 import os
 import sys
 import datetime
@@ -25,6 +26,16 @@ BLACKLIST = [
 
 output_messages = []
 
+def _sanitize_name(name):
+    """Sanitize a name to prevent path traversal. Only allow alphanumeric, hyphens, underscores, and dots."""
+    sanitized = re.sub(r'[^a-zA-Z0-9._-]', '_', name)
+    # Remove path traversal sequences and leading dots
+    sanitized = sanitized.replace('..', '')
+    sanitized = sanitized.lstrip('.')
+    if not sanitized:
+        sanitized = 'unnamed'
+    return sanitized
+
 def clear_report_directory():
     """Clear the 'report' directory before running analysis."""
     report_path = f"{os.getcwd()}/report"
@@ -35,8 +46,8 @@ def clear_report_directory():
 def analyze_repository(repo_url):
     clear_report_directory() 
     
-    repo_name = repo_url.split("/")[-1].replace(".git", "")
-    local_repo_path = f"source/{repo_name}"
+    repo_name = _sanitize_name(repo_url.split("/")[-1].replace(".git", ""))
+    local_repo_path = os.path.join("source", repo_name)
 
     if os.path.isdir(local_repo_path):
         repo = git.Repo(local_repo_path)

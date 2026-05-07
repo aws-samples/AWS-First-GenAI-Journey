@@ -73,7 +73,7 @@ async def model_execution(client, user_prompt, system_prompt):
     # Invoke the model asynchronously with the provided prompt
     response = await client.invoke_model(
         body=prompt,
-        modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+        modelId="anthropic.claude-sonnet-4-6",
         accept="application/json",
         contentType="application/json"
     )
@@ -952,7 +952,7 @@ This is the prompt/instructions that the models will be provided and that you wi
     # create Bedrock client
     client = boto3.client('bedrock-runtime', region)
     # Invoking the Amazon Bedrock and the Claude 3 Sonnet model with the constructed prompt
-    response = client.invoke_model(body=prompt, modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+    response = client.invoke_model(body=prompt, modelId="anthropic.claude-sonnet-4-6",
                                    accept="application/json", contentType="application/json")
     # Extracting and parsing the response from the AI model
     response_body = json.loads(response.get('body').read())
@@ -1068,12 +1068,12 @@ Summary: {model_task_summary}
     # Return the final score, final summary, and final scoring rubric
     return final_score, final_summary, final_score_rubric
 
-def evaluate_model_performance(csv_string, model_id="anthropic.claude-3-sonnet-20240229-v1:0"):
+def evaluate_model_performance(csv_string, model_id="anthropic.claude-sonnet-4-6"):
     """
     Evaluates the performance of AI models based on provided CSV data.
 
     :param csv_string: A string containing CSV data with columns for 'Total Cost(1000)', 'Time Length', and 'Summary Score'.
-    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-3-sonnet-20240229-v1:0".
+    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-sonnet-4-6".
     :return: A string containing the analysis and findings of model performance based on the provided CSV data.
     """
     # Constructing a prompt for the Amazon Bedrock Claude 3 Sonnet model to analyze the provided CSV data
@@ -1133,12 +1133,12 @@ def evaluate_model_performance(csv_string, model_id="anthropic.claude-3-sonnet-2
     # Returns a string containing the analysis and findings of model performance based on the provided CSV data.
     return response
 
-def evaluate_rag_performance(csv_string, model_id="anthropic.claude-3-sonnet-20240229-v1:0"):
+def evaluate_rag_performance(csv_string, model_id="anthropic.claude-sonnet-4-6"):
     """
     Evaluates the performance of AI models based on provided CSV data.
 
     :param csv_string: A string containing CSV data with columns for 'Total Cost(1000)', 'Time Length', and 'Summary Score'.
-    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-3-sonnet-20240229-v1:0".
+    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-sonnet-4-6".
     :return: A string containing the analysis and findings of model performance based on the provided CSV data.
     """
     # Constructing a prompt for the Amazon Bedrock Claude 3 Sonnet model to analyze the provided CSV data

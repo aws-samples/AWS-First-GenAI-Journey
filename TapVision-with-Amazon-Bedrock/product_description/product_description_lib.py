@@ -71,7 +71,7 @@ def get_response_from_model(prompt_content, image_bytes, prizm):
     session = boto3.Session()
     bedrock = session.client(service_name='bedrock-runtime') #creates a Bedrock client
     body = get_product_description(prompt_content, image_bytes, prizm)    
-    response = bedrock.invoke_model_with_response_stream(body=body, modelId="anthropic.claude-3-5-sonnet-20240620-v1:0", contentType="application/json", accept="application/json")
+    response = bedrock.invoke_model_with_response_stream(body=body, modelId="anthropic.claude-sonnet-4-6", contentType="application/json", accept="application/json")
         
     stream = response['body']
     if stream:
