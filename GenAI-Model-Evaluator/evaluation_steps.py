@@ -1073,7 +1073,7 @@ def evaluate_model_performance(csv_string, model_id="anthropic.claude-sonnet-4-6
     Evaluates the performance of AI models based on provided CSV data.
 
     :param csv_string: A string containing CSV data with columns for 'Total Cost(1000)', 'Time Length', and 'Summary Score'.
-    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-3-sonnet-20240229-v1:0".
+    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-sonnet-4-6".
     :return: A string containing the analysis and findings of model performance based on the provided CSV data.
     """
     # Constructing a prompt for the Amazon Bedrock Claude 3 Sonnet model to analyze the provided CSV data
@@ -1138,7 +1138,7 @@ def evaluate_rag_performance(csv_string, model_id="anthropic.claude-sonnet-4-6")
     Evaluates the performance of AI models based on provided CSV data.
 
     :param csv_string: A string containing CSV data with columns for 'Total Cost(1000)', 'Time Length', and 'Summary Score'.
-    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-3-sonnet-20240229-v1:0".
+    :param model_id: The ID of the model used for evaluation. Defaults to "anthropic.claude-sonnet-4-6".
     :return: A string containing the analysis and findings of model performance based on the provided CSV data.
     """
     # Constructing a prompt for the Amazon Bedrock Claude 3 Sonnet model to analyze the provided CSV data
