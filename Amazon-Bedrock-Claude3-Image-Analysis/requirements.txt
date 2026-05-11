@@ -26,7 +26,7 @@ packaging==23.2
 pandas==2.2.1
 pillow==12.1.0
 pip==24.3.1
-protobuf==5.29.2
+protobuf==5.29.4
 pyarrow==18.0.0
 pydeck==0.9.1
 Pygments==2.18.0
@@ -38,7 +38,7 @@ requests==2.32.3
 rich==13.9.4
 rpds-py==0.22.3
 s3transfer==0.10.4
-setuptools==75.8.2
+setuptools==78.1.1
 six==1.17.0
 smmap==5.0.1
 streamlit==1.41.1

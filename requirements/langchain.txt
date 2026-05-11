@@ -9,7 +9,7 @@
 
 # LangChain core
 langchain==0.3.7
-langchain-community==0.3.7
+langchain-community==0.3.22
 langchain-aws==0.2.7
 langchain-experimental==0.3.4
 

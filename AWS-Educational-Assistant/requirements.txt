@@ -1,8 +1,8 @@
 -r ../requirements/langchain.txt
 
 # Project-specific
-transformers==4.42.3
+transformers==4.53.0
 bs4==0.0.2
-setuptools==75.8.2
+setuptools==78.1.1
 pandas-datareader==0.10.0
 jq==1.8.0

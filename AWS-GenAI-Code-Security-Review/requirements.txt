@@ -29,7 +29,7 @@ openai==1.57.0
 packaging==24.0
 pandas==2.2.1
 Pillow==12.1.0
-protobuf==5.29.2
+protobuf==5.29.4
 pyarrow==18.0.0
 pydeck==0.9.1
 Pygments==2.18.0
