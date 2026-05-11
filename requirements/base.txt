@@ -17,7 +17,7 @@ awscli==1.36.40
 streamlit==1.37.1
 
 # Image processing (CVE-sensitive — update here when new CVE drops)
-Pillow==12.1.0
+Pillow==12.2.0
 
 # Utilities
 python-dotenv==1.2.2
