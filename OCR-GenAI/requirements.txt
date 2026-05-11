@@ -1,6 +1,4 @@
-boto3>=1.26.159
-streamlit==1.37.0
-langchain==0.2.10
-langchain-aws==0.1.6
-langchain-community==0.2.19
+-r ../requirements/langchain.txt
+
+# Project-specific
 SQLAlchemy==2.0.28

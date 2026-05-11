@@ -1,0 +1,28 @@
+# =============================================================================
+# base.txt — Core AWS + web UI dependencies shared across ALL projects
+#
+# Usage in project requirements.txt:
+#   -r ../requirements/base.txt
+#
+# To update a CVE fix: change the version here, all projects pick it up.
+# =============================================================================
+
+# AWS SDK
+boto3==1.35.58
+botocore==1.35.58
+s3transfer==0.10.4
+awscli==1.36.40
+
+# Web interface
+streamlit==1.37.1
+
+# Image processing (CVE-sensitive — update here when new CVE drops)
+Pillow==12.1.0
+
+# Utilities
+python-dotenv==1.0.1
+requests==2.32.3
+urllib3==2.3.0
+certifi==2024.8.30
+setuptools==78.1.1
+protobuf==5.29.4
