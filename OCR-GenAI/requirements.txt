@@ -1,4 +1,0 @@
--r ../requirements/langchain.txt
-
-# Project-specific
-SQLAlchemy==2.0.28

@@ -191,8 +191,7 @@ LEGACY_MODELS = [
 # Files where legacy IDs are acceptable (comments, pricing tables, model lists)
 ALLOWED_LEGACY_FILES = {
     # Evaluator apps keep old models in selection lists and pricing tables
-    "GenAI-Model-Evaluator/pricing_calculator.py",
-    "GenAI-Model-Evaluator/app.py",
+    # (GenAI-Model-Evaluator was consolidated into Amazon-Bedrock-Model-Evaluator)
     "Amazon-Bedrock-Model-Evaluator/pricing_calculator.py",
     "Amazon-Bedrock-Model-Evaluator/app.py",
     # Image generation app lists multiple Stability models as options
