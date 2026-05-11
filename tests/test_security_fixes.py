@@ -171,8 +171,12 @@ LIBS_FILES = [
 
 @pytest.mark.parametrize("filepath", LIBS_FILES)
 def test_stream_parsing_has_error_handling(filepath):
-    """All Libs.py files must wrap json.loads in try/except."""
+    """All Libs.py files must wrap json.loads in try/except.
+    Wrappers that delegate to shared/libs.py are also accepted."""
     src = open(filepath).read()
+    # Accept either direct implementation or delegation to shared/libs.py
+    if "from shared.libs import" in src:
+        src = open("shared/libs.py").read()
     assert "json.JSONDecodeError" in src or "JSONDecodeError" in src
     assert "except" in src
 
@@ -243,8 +247,11 @@ NEW_SONNET = "anthropic.claude-sonnet-4-6"
 
 @pytest.mark.parametrize("filepath", LIBS_FILES)
 def test_libs_use_new_sonnet(filepath):
-    """All Libs.py files should reference the new Sonnet 4.6 model."""
+    """All Libs.py files should reference the new Sonnet 4.6 model.
+    Wrappers that delegate to shared/libs.py are also accepted."""
     src = open(filepath).read()
+    if "from shared.libs import" in src:
+        src = open("shared/libs.py").read()
     assert NEW_SONNET in src, f"{filepath} does not contain {NEW_SONNET}"
 
 
@@ -259,8 +266,11 @@ IMAGE_LIB_FILES = [
 
 @pytest.mark.parametrize("filepath", IMAGE_LIB_FILES)
 def test_image_libs_use_nova_canvas(filepath):
-    """All image_lib.py files should use Nova Canvas instead of Stable Diffusion."""
+    """All image_lib.py files should use Nova Canvas instead of Stable Diffusion.
+    Wrappers that delegate to shared/image_lib.py are also accepted."""
     src = open(filepath).read()
+    if "from shared.image_lib import" in src:
+        src = open("shared/image_lib.py").read()
     assert "amazon.nova-canvas-v1:0" in src
     assert "stability.stable-diffusion-xl-v1" not in src
 

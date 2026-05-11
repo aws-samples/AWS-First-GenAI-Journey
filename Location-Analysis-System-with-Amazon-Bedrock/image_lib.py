@@ -1,44 +1,8 @@
+"""
+image_lib.py — thin wrapper that re-exports everything from shared/image_lib.py.
+All logic lives in shared/image_lib.py to avoid duplication across projects.
+"""
+import sys
 import os
-import boto3 #import aws sdk and supporting libraries
-import json
-import base64
-from io import BytesIO
-
-
-session = boto3.Session(
-    profile_name=os.environ.get("BWB_PROFILE_NAME")
-) #sets the profile name to use for AWS credentials
-
-bedrock = session.client(
-    service_name='bedrock-runtime', #creates a Bedrock client
-    region_name=os.environ.get("BWB_REGION_NAME"),
-    endpoint_url=os.environ.get("BWB_ENDPOINT_URL")
-) 
-
-bedrock_model_id = "amazon.nova-canvas-v1:0" #use the Amazon Nova Canvas model
-
-
-
-def get_response_image_from_payload(response): #returns the image bytes from the model response payload
-
-    payload = json.loads(response.get('body').read()) #load the response body into a json object
-    images = payload.get('artifacts') #extract the image artifacts
-    image_data = base64.b64decode(images[0].get('base64')) #decode image
-
-    return BytesIO(image_data) #return a BytesIO object for client app consumption
-
-
-
-def get_image_response(prompt_content): #text-to-text client function
-    
-    request_body = json.dumps({"text_prompts": 
-                               [ {"text": prompt_content } ], #prompts to use
-                               "cfg_scale": 9, #how closely the model tries to match the prompt
-                               "steps": 50, }) #number of diffusion steps to perform
-    
-    response = bedrock.invoke_model(body=request_body, modelId=bedrock_model_id) #call the Bedrock endpoint
-    
-    output = get_response_image_from_payload(response) #convert the response payload to a BytesIO object for the client to consume
-    
-    return output
-    
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from shared.image_lib import *  # noqa: F401, F403
