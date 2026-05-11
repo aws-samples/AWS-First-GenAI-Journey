@@ -1,0 +1,15 @@
+# =============================================================================
+# langchain-ml.txt — LangChain + ML stack combined
+#
+# For projects that need both RAG/agents AND vision/ML capabilities.
+# Used by: AWS-First-Cloud-Journey-Uniform-Detection,
+#          Content-Moderation-with-Amazon-Bedrock,
+#          Location-Analysis-System-with-Amazon-Bedrock,
+#          Product-Description-Generator-with-Amazon-Bedrock
+#
+# Usage:
+#   -r ../requirements/langchain-ml.txt
+# =============================================================================
+
+-r langchain.txt
+-r ml.txt

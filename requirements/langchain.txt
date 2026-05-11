@@ -1,0 +1,21 @@
+# =============================================================================
+# langchain.txt — LangChain stack for RAG / agent projects
+#
+# Usage:
+#   -r ../requirements/langchain.txt
+# =============================================================================
+
+-r base.txt
+
+# LangChain core
+langchain==0.3.7
+langchain-community==0.3.7
+langchain-aws==0.2.7
+langchain-experimental==0.3.4
+
+# Document processing
+pypdf==4.3.1
+PyPDF2==3.0.1
+
+# Data
+python-dotenv==1.0.1

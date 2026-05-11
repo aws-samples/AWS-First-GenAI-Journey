@@ -1,0 +1,22 @@
+# =============================================================================
+# ml.txt — ML / Vision stack (transformers, torch, faiss, opencv)
+#
+# Usage:
+#   -r ../requirements/ml.txt
+# =============================================================================
+
+-r base.txt
+
+# ML frameworks
+transformers==4.42.3
+torch==2.5.1
+numpy==1.26.4
+
+# Vector store
+faiss-cpu==1.9.0
+
+# Computer vision
+opencv-python-headless==4.10.0.84
+
+# Data processing
+jq==1.8.0

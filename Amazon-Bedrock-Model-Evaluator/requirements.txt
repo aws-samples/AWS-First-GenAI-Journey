@@ -1,3 +1,6 @@
+-r ../requirements/base.txt
+
+# Project-specific (fully pinned lockfile for reproducibility)
 aioboto3==13.0.1
 aiobotocore==2.13.0
 aiofiles==23.2.1

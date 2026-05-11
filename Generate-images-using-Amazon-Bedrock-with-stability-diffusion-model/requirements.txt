@@ -1,4 +1,1 @@
-streamlit==1.37.0
-boto3==1.28.0
-Pillow==12.1.0
-langchain==0.2.10
+-r ../requirements/langchain.txt

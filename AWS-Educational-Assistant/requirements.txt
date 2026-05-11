@@ -1,16 +1,8 @@
+-r ../requirements/langchain.txt
+
+# Project-specific
 transformers==4.42.3
-Pillow==12.1.0
-pypdf==4.3.1
-jq==1.8.0
-langchain==0.3.7
-streamlit==1.37.1
-boto3==1.35.58
-awscli==1.36.40
-pandas-datareader==0.10.0
-langchain-experimental==0.3.4
 bs4==0.0.2
 setuptools==75.8.2
-PyPDF2==3.0.1
-langchain_community==0.3.7
-python-dotenv==1.0.1
-botocore==1.35.58
+pandas-datareader==0.10.0
+jq==1.8.0
