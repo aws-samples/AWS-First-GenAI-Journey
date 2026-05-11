@@ -14,7 +14,7 @@ s3transfer==0.10.4
 awscli==1.36.40
 
 # Web interface
-streamlit==1.37.1
+streamlit==1.54.0
 
 # Image processing (CVE-sensitive — update here when new CVE drops)
 Pillow==12.2.0
