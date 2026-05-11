@@ -18,4 +18,4 @@ pypdf==6.10.2
 PyPDF2==3.0.1
 
 # Data
-python-dotenv==1.0.1
+python-dotenv==1.2.2

@@ -20,7 +20,7 @@ streamlit==1.37.1
 Pillow==12.1.0
 
 # Utilities
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 requests==2.32.3
 urllib3==2.3.0
 certifi==2024.8.30
