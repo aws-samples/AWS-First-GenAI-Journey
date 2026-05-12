@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import json
 from pydantic import BaseModel, Field
@@ -20,7 +21,7 @@ from uuid import uuid4
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-session = boto3.Session(region_name="us-east-1")
+session = boto3.Session(region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
 MODEL_ID = "amazon.nova-2-lite-v1:0"
 

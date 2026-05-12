@@ -1,9 +1,10 @@
+import os
 import streamlit as st
 import boto3
 from botocore.exceptions import ClientError
 
 # Initialize AWS Bedrock client
-client = boto3.client("bedrock-runtime", region_name="us-west-2")
+client = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-west-2"))
 
 # Define Claude 3 Sonnet model ID
 model_id = "anthropic.claude-sonnet-4-6"
