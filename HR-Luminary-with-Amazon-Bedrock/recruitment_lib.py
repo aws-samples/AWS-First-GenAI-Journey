@@ -85,14 +85,12 @@ def suggested_jobs(input_text):
         \n\nHuman: here is the resume content
         <text>""" + input_text + """</text>
     \n\nAssistant: """
-    print(input_text)
     return llm.invoke(prompt)
 
     
 def get_jobs(jobs):
     tool = GoogleJobsQueryRun(api_wrapper=GoogleJobsAPIWrapper())  
     res =  tool.run(jobs)
-    print(res)
     return res
 
 def search_jobs(input_text, st_callback):
