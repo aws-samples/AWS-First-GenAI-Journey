@@ -1,3 +1,4 @@
+import os
 import boto3, json
 from dotenv import load_dotenv
 from langchain.retrievers.bedrock import AmazonKnowledgeBasesRetriever
@@ -132,7 +133,7 @@ def search(question, callback):
     # Truncate the question if it's too long
     max_query_length = 1000
     truncated_question = question[:max_query_length] if len(question) > max_query_length else question
-    bedrock_client = boto3.client('bedrock-runtime', region_name = 'us-east-1')
+    bedrock_client = boto3.client('bedrock-runtime', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
 
     model_kwargs_claude = { "temperature": 0.5, "top_p": 1}
     llm = BedrockChat(
