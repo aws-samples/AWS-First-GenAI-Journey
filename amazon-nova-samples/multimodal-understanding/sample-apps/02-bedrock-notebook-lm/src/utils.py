@@ -12,6 +12,7 @@ Functions:
 """
 
 import io
+import os
 
 # Standard library imports
 import json
@@ -220,7 +221,7 @@ def create_dialogue_audio(dialogue, output_file):
 
     # Initialize Polly client
     polly_client = boto3.Session(
-        region_name="us-east-1"  # Change to your preferred region
+        region_name=os.environ.get("AWS_REGION", "us-east-1")
     ).client("polly")
 
     # Initialize an empty audio segment

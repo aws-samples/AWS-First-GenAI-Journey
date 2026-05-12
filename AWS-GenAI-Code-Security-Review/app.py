@@ -78,8 +78,13 @@ def main():
                 st.warning(f"Report path does not exist: {report_path}")
 
         elif uploaded_file:
-            st.write('Analyzing the uploaded file...')
-            analyze_uploaded_file(uploaded_file)
+            # Validate file size (max 10MB)
+            MAX_FILE_SIZE_MB = 10
+            if uploaded_file.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+                st.error(f"File too large. Maximum size is {MAX_FILE_SIZE_MB}MB.")
+            else:
+                st.write('Analyzing the uploaded file...')
+                analyze_uploaded_file(uploaded_file)
         else:
             st.warning('Please enter a GitHub URL or upload a file.')
 

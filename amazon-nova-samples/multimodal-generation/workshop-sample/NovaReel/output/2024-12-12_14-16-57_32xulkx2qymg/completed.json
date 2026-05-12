@@ -11,7 +11,7 @@
     },
     "RetryAttempts": 0
   },
-  "invocationArn": "arn:aws:bedrock:us-east-1:590183822512:async-invoke/32xulkx2qymg",
+  "invocationArn": "arn:aws:bedrock:us-east-1:<ACCOUNT_ID>:async-invoke/32xulkx2qymg",
   "modelArn": "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-reel-v1:0",
   "clientRequestToken": "2370991d-8cd2-4ad4-9b43-7f5e71a9e901",
   "status": "Completed",
@@ -20,7 +20,7 @@
   "endTime": "2024-12-12 07:21:21+00:00",
   "outputDataConfig": {
     "s3OutputDataConfig": {
-      "s3Uri": "s3://ovg-bucket-us-east-1-590183822512/32xulkx2qymg"
+      "s3Uri": "s3://ovg-bucket-us-east-1-<ACCOUNT_ID>/32xulkx2qymg"
     }
   }
 }

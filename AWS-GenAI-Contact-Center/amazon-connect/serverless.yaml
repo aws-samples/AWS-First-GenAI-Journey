@@ -35,7 +35,7 @@ functions:
     handler: src/lambda/StartStreaming.handler
     name: '${self:provider.stage}-${self:service}-start-streaming'
     description: 'Handles starting streaming by dropping an SQS message'
-    role: LambdaRole
+    role: StartStreamingRole
     memorySize: 256
     timeout: 7
     environment:
@@ -47,7 +47,7 @@ functions:
     handler: src/lambda/ProcessStream.handler
     name: '${self:provider.stage}-${self:service}-process-stream'
     description: 'Handles listening on a KVS stream and transcribing'
-    role: LambdaRole
+    role: ProcessStreamRole
     memorySize: 256
     timeout: 30
     environment:
@@ -67,7 +67,7 @@ functions:
     handler: src/lambda/VirtualAgent.handler
     name: '${self:provider.stage}-${self:service}-virtual-agent'
     description: 'Virtual agent fetching data from DynamoDB'
-    role: LambdaRole
+    role: VirtualAgentRole
     memorySize: 256
     timeout: 7
     environment:
@@ -126,11 +126,12 @@ resources:
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
 
-    LambdaRole:
+    # IAM Role for StartStreaming Lambda - only needs SQS and CloudWatch Logs
+    StartStreamingRole:
       Type: 'AWS::IAM::Role'
       Properties:
-        RoleName: '${self:provider.stage}-${self:service}-${self:provider.region}-lambdarole'
-        Description: 'Lambda execution role'
+        RoleName: '${self:provider.stage}-${self:service}-${self:provider.region}-startstreaming-role'
+        Description: 'Lambda execution role for StartStreaming'
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -140,61 +141,116 @@ resources:
                   - 'lambda.amazonaws.com'
               Action:
                 - 'sts:AssumeRole'
-        ManagedPolicyArns:
-          - !Ref LambdaPolicy
+        Policies:
+          - PolicyName: StartStreamingPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - 'arn:aws:logs:${self:provider.region}:${env:accountNumber}:log-group:/aws/lambda/${self:provider.stage}-${self:service}-start-streaming:*'
+                - Effect: Allow
+                  Action:
+                    - sqs:SendMessage
+                  Resource: !GetAtt ProcessQueue.Arn
 
-    LambdaPolicy:
-      Type: 'AWS::IAM::ManagedPolicy'
+    # IAM Role for ProcessStream Lambda - needs DynamoDB, SQS, SageMaker, Bedrock, KinesisVideo
+    ProcessStreamRole:
+      Type: 'AWS::IAM::Role'
       Properties:
-        ManagedPolicyName: '${self:provider.stage}-${self:service}-${self:provider.region}-lambdapolicy'
-        Description: 'Managed policy for lambda execution'
-        PolicyDocument:
+        RoleName: '${self:provider.stage}-${self:service}-${self:provider.region}-processstream-role'
+        Description: 'Lambda execution role for ProcessStream'
+        AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
-            - Effect: Allow
+            - Effect: 'Allow'
+              Principal:
+                Service:
+                  - 'lambda.amazonaws.com'
               Action:
-                - dynamodb:PutItem
-                - dynamodb:Query
-                - dynamodb:GetItem
-                - dynamodb:PartiQLInsert
-                - dynamodb:PartiQLSelect
-                - dynamodb:PartiQLUpdate
-                - dynamodb:PartiQLDelete
-              Resource:
-                - !GetAtt TranscriptsTable.Arn
-                - !GetAtt MessagesTable.Arn
-                - !GetAtt NextMessageTable.Arn
-            - Effect: Allow
+                - 'sts:AssumeRole'
+        Policies:
+          - PolicyName: ProcessStreamPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - 'arn:aws:logs:${self:provider.region}:${env:accountNumber}:log-group:/aws/lambda/${self:provider.stage}-${self:service}-process-stream:*'
+                - Effect: Allow
+                  Action:
+                    - dynamodb:PutItem
+                    - dynamodb:Query
+                    - dynamodb:GetItem
+                  Resource:
+                    - !GetAtt TranscriptsTable.Arn
+                    - !GetAtt MessagesTable.Arn
+                    - !GetAtt NextMessageTable.Arn
+                - Effect: Allow
+                  Action:
+                    - sqs:ReceiveMessage
+                    - sqs:DeleteMessage
+                    - sqs:GetQueueAttributes
+                  Resource: !GetAtt ProcessQueue.Arn
+                - Effect: Allow
+                  Action:
+                    - sagemaker:InvokeEndpoint
+                  Resource:
+                    - arn:aws:sagemaker:${self:provider.region}:${env:accountNumber}:endpoint/${env:whisperEndPoint}
+                - Effect: Allow
+                  Action:
+                    - bedrock:InvokeModel
+                  Resource:
+                    - 'arn:aws:bedrock:${env:bedrockRegion}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
+                - Effect: Allow
+                  Action:
+                    - kinesisvideo:GetDataEndpoint
+                    - kinesisvideo:GetMedia
+                  Resource:
+                    - arn:aws:kinesisvideo:${self:provider.region}:${env:accountNumber}:stream/${self:provider.stage}-${self:service}-*
+
+    # IAM Role for VirtualAgent Lambda - only needs DynamoDB read/delete and CloudWatch Logs
+    VirtualAgentRole:
+      Type: 'AWS::IAM::Role'
+      Properties:
+        RoleName: '${self:provider.stage}-${self:service}-${self:provider.region}-virtualagent-role'
+        Description: 'Lambda execution role for VirtualAgent'
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Principal:
+                Service:
+                  - 'lambda.amazonaws.com'
               Action:
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-              Resource:
-                - 'arn:aws:logs:${self:provider.region}:${env:accountNumber}:log-group:/aws/lambda/*:*:*'
-            - Effect: Allow
-              Action:
-                - sqs:SendMessage
-                - sqs:ReceiveMessage
-                - sqs:DeleteMessage
-                - sqs:GetQueueAttributes
-              Resource: 'arn:aws:sqs:${self:provider.region}:${env:accountNumber}:${self:provider.stage}-${self:service}-process'
-            - Effect: Allow
-              Action:
-                - sagemaker:InvokeEndpoint
-                - sagemaker:DescribeEndpoint
-              Resource:
-                - arn:aws:sagemaker:${self:provider.region}:${env:accountNumber}:endpoint/${env:whisperEndPoint}
-            - Effect: Allow
-              Action:
-                - bedrock:InvokeModel
-              Resource:
-                - 'arn:aws:bedrock:${env:bedrockRegion}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
-            - Effect: Allow
-              Action:
-                - kinesisvideo:GetDataEndpoint
-                - kinesisvideo:GetMedia
-              Resource:
-                - arn:aws:kinesisvideo:${self:provider.region}:${env:accountNumber}:stream/*
+                - 'sts:AssumeRole'
+        Policies:
+          - PolicyName: VirtualAgentPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - 'arn:aws:logs:${self:provider.region}:${env:accountNumber}:log-group:/aws/lambda/${self:provider.stage}-${self:service}-virtual-agent:*'
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:Query
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - !GetAtt NextMessageTable.Arn
 
     ProcessQueue:
       Type: AWS::SQS::Queue

@@ -1,255 +1,282 @@
+"""
+AWS Educational Assistant - Core Library (2026 Edition)
+
+Uses Amazon Bedrock Converse API with:
+- Built-in Guardrails via guardrailConfig
+- Proper system prompt separation
+- Type-safe configuration with dataclasses
+- Input sanitization
+- Streaming via ConverseStream
+
+References:
+- Bedrock Converse API: https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference.html
+- Guardrails + Converse: https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-converse-api.html
+- OWASP LLM Top 10 (2026): https://owasp.org/www-project-top-10-for-large-language-model-applications/
+"""
+
 import os
-import boto3, json, logging
+import sys
+import json
+import logging
+from dataclasses import dataclass, field
+from typing import Generator
+
+import boto3
+from botocore.config import Config
 from dotenv import load_dotenv
 from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
 from langchain.chains import RetrievalQA
 from langchain_community.chat_models import BedrockChat
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from shared.security_utils import sanitize_input, validate_input_length
 
 load_dotenv()
-
 logger = logging.getLogger(__name__)
 
-def call_claude_sonet_stream(prompt):
 
-    prompt_config = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 10000,
-        "temperature": 0, 
-        "top_k": 0,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ],
-    }
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
 
-    body = json.dumps(prompt_config)
-
-    modelId = "anthropic.claude-sonnet-4-6"
-    accept = "application/json"
-    contentType = "application/json"
-
-    bedrock = boto3.client(service_name="bedrock-runtime")  
-    response = bedrock.invoke_model_with_response_stream(
-        body=body, modelId=modelId, accept=accept, contentType=contentType
-    )
-
-    stream = response['body']
-    if stream:
-        for event in stream:
-            chunk = event.get('chunk')
-            if chunk:
-                try:
-                    delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                    if delta:
-                        yield delta.get("text")
-                except (json.JSONDecodeError, UnicodeDecodeError, AttributeError) as e:
-                    logger.warning(f"Failed to parse stream chunk: {e}")
-                    continue
-                     
-                     
-                     
-
-def rewrite_document(input_topic, subject_area, audience_level):
-    """
-    Generates a prompt to create educational content using an AI model.
-
-    Parameters:
-    input_topic (str): The specific topic for the lesson.
-    subject_area (str): The subject area related to the topic.
-    audience_level (str): The target audience level (e.g., high school students, professionals).
-
-    Returns:
-    str: The formatted prompt ready to be used with the AI model.
-    """
-    
-    # Template for the AI prompt with placeholders for dynamic content
-    prompt_template = (
-        "You are an expert educator with deep knowledge in {subject_area}. "
-        "Your task is to create an engaging and informative lesson on the topic of '{input_topic}'. "
-        "The content should be suitable for {audience_level}, and it should include the following elements:\n\n"
-        "1. **Introduction**: Start with an introduction that explains the importance of the topic and how it relates to the broader subject area.\n\n"
-        "2. **Key Concepts**: Clearly define and explain the key concepts, theories, or principles related to the topic. Use simple language and examples to ensure understanding.\n\n"
-        "3. **Practical Applications**: Describe how these concepts can be applied in real-world scenarios. Provide at least two examples or case studies.\n\n"
-        "4. **Common Misconceptions**: Identify any common misconceptions about the topic and provide clarifications to correct these misunderstandings.\n\n"
-        "5. **Summary**: End with a summary that recaps the main points covered in the lesson, highlighting the most important takeaways.\n\n"
-        "6. **Further Reading**: Suggest additional resources or readings for students who want to explore the topic in more depth.\n\n"
-        "Please write the content in a clear, concise, and engaging manner, suitable for the specified audience. Ensure that the information is accurate and up-to-date.\n\n"
-        "Here is the topic for the lesson:\n"
-        "{input_topic}\n\n"
-        "You may begin your lesson."
-    )
-    
-    # Format the prompt with the provided parameters
-    formatted_prompt = prompt_template.format(
-        subject_area=subject_area,
-        input_topic=input_topic,
-        audience_level=audience_level
-    )
-    
-    # Call the AI model using the generated prompt
-    return call_claude_sonet_stream(formatted_prompt)
-
-# Example usage:
-# topic = "The Impact of Climate Change on Global Ecosystems"
-# subject = "Environmental Science"
-# audience = "high school students"
-# educational_content = create_educational_content(topic, subject, audience)
+@dataclass(frozen=True)
+class BedrockConfig:
+    """Immutable configuration for Bedrock API calls."""
+    model_id: str = field(default_factory=lambda: os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6"))
+    region: str = field(default_factory=lambda: os.environ.get("AWS_REGION", "us-east-1"))
+    max_tokens: int = 4096
+    temperature: float = 0.0
+    top_p: float = 0.9
+    guardrail_id: str = field(default_factory=lambda: os.environ.get("BEDROCK_GUARDRAIL_ID", ""))
+    guardrail_version: str = field(default_factory=lambda: os.environ.get("BEDROCK_GUARDRAIL_VERSION", "DRAFT"))
 
 
+_config = BedrockConfig()
+_client = boto3.client(
+    "bedrock-runtime",
+    region_name=_config.region,
+    config=Config(read_timeout=120),
+)
 
-def summary_stream(input_text, summary_length="medium", detail_level="medium", use_case="general"):
-    """
-    Summarizes the provided lecture or academic paper content using the Claude Sonnet model.
+
+# ---------------------------------------------------------------------------
+# Core: Converse API with Guardrails (2026 standard)
+# ---------------------------------------------------------------------------
+
+def converse_stream(
+    prompt: str,
+    system_prompt: str | None = None,
+    config: BedrockConfig = _config,
+) -> Generator[str, None, None]:
+    """Stream a response using Bedrock Converse API with built-in Guardrails.
+
+    This is the recommended approach for 2026:
+    - Uses Converse API (model-agnostic, portable across providers)
+    - Guardrails evaluated inline via guardrailConfig (no separate API call)
+    - guardContent marks user input for targeted guardrail evaluation
+    - System prompt is properly separated from user messages
 
     Args:
-        input_text (str): The text content of the lecture or paper to be summarized.
-        summary_length (str): The desired length of the summary ('short', 'medium', 'long').
-        detail_level (str): The desired level of detail in the summary ('high', 'medium').
-        use_case (str): The specific use case for the summary ('study', 'exam preparation', 'research', 'general').
+        prompt: User input text
+        system_prompt: Optional system instructions (separated from user message)
+        config: Bedrock configuration
 
-    Returns:
-        str: The customized summarized content.
+    Yields:
+        Text chunks from the model response
     """
-    length_descriptions = {
-        "short": "brief and to the point, capturing only the most essential details",
-        "medium": "concise but comprehensive, covering key concepts and important points",
-        "long": "detailed and thorough, including most of the significant aspects"
+    # Sanitize input
+    prompt = sanitize_input(prompt)
+
+    # Build messages with guardContent for targeted guardrail evaluation
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"guardContent": {"text": {"text": prompt}}}
+            ],
+        }
+    ]
+
+    # Build system prompt (guarded separately)
+    system = []
+    if system_prompt:
+        system = [{"text": system_prompt}]
+
+    # Build inference config
+    inference_config = {
+        "maxTokens": config.max_tokens,
+        "temperature": config.temperature,
+        "topP": config.top_p,
     }
 
-    detail_descriptions = {
-        "high": "with a focus on deep analysis and critical points",
-        "medium": "covering all important elements with a balanced level of detail"
+    # Build request kwargs
+    kwargs = {
+        "modelId": config.model_id,
+        "messages": messages,
+        "inferenceConfig": inference_config,
     }
+    if system:
+        kwargs["system"] = system
 
-    use_case_descriptions = {
-        "study": "emphasizing key points and concepts to aid in understanding and retention",
-        "exam preparation": "focusing on potential exam questions and critical facts for quick revision",
-        "research": "highlighting in-depth analysis, methodologies, and key findings",
-        "general": "providing a well-rounded summary suitable for a general audience"
-    }
+    # Attach guardrail if configured
+    if config.guardrail_id:
+        kwargs["guardrailConfig"] = {
+            "guardrailIdentifier": config.guardrail_id,
+            "guardrailVersion": config.guardrail_version,
+            "trace": "enabled",
+            "streamProcessingMode": "sync",
+        }
 
+    try:
+        response = _client.converse_stream(**kwargs)
+        stream = response.get("stream")
+        if stream:
+            for event in stream:
+                if "contentBlockDelta" in event:
+                    delta = event["contentBlockDelta"].get("delta", {})
+                    text = delta.get("text")
+                    if text:
+                        yield text
+                elif "messageStop" in event:
+                    stop_reason = event["messageStop"].get("stopReason", "")
+                    if stop_reason == "guardrail_intervened":
+                        logger.warning("Guardrail intervened on output")
+                elif "metadata" in event:
+                    trace = event["metadata"].get("trace")
+                    if trace:
+                        logger.info("Guardrail trace: %s", json.dumps(trace, default=str))
+    except _client.exceptions.ValidationException as e:
+        logger.error("Bedrock validation error: %s", e)
+        yield "An error occurred processing your request."
+    except Exception as e:
+        logger.error("Bedrock API error: %s", e)
+        yield "An error occurred. Please try again."
+
+
+# Legacy alias for backward compatibility
+def call_claude_sonet_stream(prompt: str, system_prompt: str | None = None) -> Generator[str, None, None]:
+    """Legacy wrapper — delegates to converse_stream."""
+    return converse_stream(prompt, system_prompt=system_prompt)
+
+
+# ---------------------------------------------------------------------------
+# Educational Functions
+# ---------------------------------------------------------------------------
+
+def rewrite_document(input_topic: str, subject_area: str, audience_level: str) -> Generator[str, None, None]:
+    """Generate educational content for a given topic."""
+    system = (
+        f"You are an expert educator with deep knowledge in {subject_area}. "
+        f"Create content suitable for {audience_level}."
+    )
     prompt = (
-        f"Please summarize the following academic content with the following specifications:\n"
-        f"Length: {length_descriptions.get(summary_length, 'medium')}\n"
-        f"Detail Level: {detail_descriptions.get(detail_level, 'medium')}\n"
-        f"Use Case: {use_case_descriptions.get(use_case, 'general')}\n\n"
-        f"Content:\n{input_text}\n\n"
-        f"Summary:"
+        f"Create an engaging and informative lesson on: '{input_topic}'\n\n"
+        "Include: Introduction, Key Concepts, Practical Applications, "
+        "Common Misconceptions, Summary, and Further Reading."
     )
-    return call_claude_sonet_stream(prompt)
+    return converse_stream(prompt, system_prompt=system)
 
 
-def query_document(question, docs):
-    prompt = """
-    Human: You are an educational assistant specializing in helping students understand and review lecture content. Below is the content of a lecture document:
+def summary_stream(
+    input_text: str,
+    summary_length: str = "medium",
+    detail_level: str = "medium",
+    use_case: str = "general",
+) -> Generator[str, None, None]:
+    """Summarize lecture/academic content with customizable parameters."""
+    input_text = sanitize_input(input_text)
 
-    <lecture_content>
-    """ + str(docs) + """
-    </lecture_content>
-    
-    Please review the content and provide a clear and concise answer to the following question:
+    length_map = {
+        "short": "brief, capturing only essential details",
+        "medium": "concise but comprehensive, covering key concepts",
+        "long": "detailed and thorough",
+    }
+    detail_map = {
+        "high": "deep analysis and critical points",
+        "medium": "balanced level of detail",
+    }
+    use_case_map = {
+        "study": "key points for understanding and retention",
+        "exam preparation": "critical facts for quick revision",
+        "research": "methodologies and key findings",
+        "general": "well-rounded for a general audience",
+    }
 
-    Question: """ + question + """
-    
-    Answer based solely on the content provided and ensure that your response is accurate and relevant to the educational context.
-
-    \n\nAssistant:"""
-
-    # Get the generator from call_claude_sonet_stream
-    response_generator = call_claude_sonet_stream(prompt)
-
-    # Retrieve the complete response by iterating over the generator and filtering out None values
-    response = "".join([chunk for chunk in response_generator if chunk is not None])
-
-    return response
-
-
-
-def create_questions(input_text): 
-    system_prompt = """You are an expert in creating high-quality multiple-choice questions and answer pairs based on a given context. Your task is to carefully analyze the provided content and generate questions that assess comprehension, critical thinking, and application of the material. Ensure that each question is clear, concise, and aligned with the key concepts of the context. Additionally, provide one correct answer along with three plausible distractors to challenge the learner's understanding. The questions should vary in difficulty and cover different aspects of the content, including factual recall, interpretation, and synthesis, you should:
-    1. Create thought-provoking multiple-choice questions that assess the reader's understanding of the context. 
-    2. Ensure the questions are clear, concise, and relevant.
-    3. Provide logical and contextually relevant answer options.
-
-    The format for multiple-choice questions and answer pairs should be as follows: 
-        1) Question: 
-
-        A) Option 1
-
-        B) Option 2 
-
-        C) Option 3 
-        
-        D) Option 4
-
-        Answer: A) Option 1
-
-    Continue generating additional questions and answer pairs as needed.
-
-    MAKE SURE TO INCLUDE THE FULL CORRECT ANSWER AT THE END, NO EXPLANATION NEEDED:"""
-    
-    prompt = f"""{system_prompt} Based on the provided context, create 20 multiple-choice questions and answer pairs
-    \n\nHuman: here is the content:
-    <text>""" + str(input_text) + """</text>
-    \n\nAssistant: """
-    
-    return call_claude_sonet_stream(prompt)
+    system = "You are an academic summarization expert. Produce clear, accurate summaries."
+    prompt = (
+        f"Summarize the following content.\n"
+        f"Length: {length_map.get(summary_length, length_map['medium'])}\n"
+        f"Detail: {detail_map.get(detail_level, detail_map['medium'])}\n"
+        f"Focus: {use_case_map.get(use_case, use_case_map['general'])}\n\n"
+        f"<content>{input_text}</content>"
+    )
+    return converse_stream(prompt, system_prompt=system)
 
 
-def suggest_writing_document(input_text): 
-    prompt = """
-    Your task is to act as an experienced instructional designer and educator. You will review the provided content to prepare a comprehensive and engaging syllabus. The syllabus should be well-organized, clear, and aligned with best practices in syllabus design. Consider the following elements:
+def query_document(question: str, docs: str) -> str:
+    """Answer a question based on lecture content."""
+    question = sanitize_input(question, max_length=1000)
+    docs_text = sanitize_input(str(docs))
 
-    1. **Course Overview:** Provide a concise introduction to the course, including objectives, key topics, and the course's relevance to the students.
-    2. **Learning Outcomes:** Clearly define what students will learn and be able to do by the end of the course.
-    3. **Course Structure:** Break down the course into modules or units, outlining the content covered in each week or session.
-    4. **Assessment Methods:** Detail how students will be assessed, including assignments, quizzes, exams, projects, and participation.
-    5. **Course Materials:** List the required and recommended readings, textbooks, and any other resources students will need.
-    6. **Policies and Expectations:** State the course policies, such as attendance, participation, academic integrity, and grading criteria.
-    7. **Schedule:** Provide a tentative schedule that includes important dates for lectures, assignments, exams, and other activities.
-    8. **Engagement:** Ensure the syllabus is engaging and motivating, setting a positive tone for the course.
-
-    Content to review:
-    <text>""" + str(input_text) + """</text>
-
-    Your response should include specific suggestions for improving the syllabus, explanations for any revisions, and additional tips for enhancing the overall quality and effectiveness of the syllabus.
-
-    Assistant: 
-    """
-    return call_claude_sonet_stream(prompt)
+    system = (
+        "You are an educational assistant. Answer based solely on the provided "
+        "lecture content. If the answer is not in the content, say so."
+    )
+    prompt = (
+        f"<lecture_content>{docs_text}</lecture_content>\n\n"
+        f"Question: {question}"
+    )
+    return "".join(chunk for chunk in converse_stream(prompt, system_prompt=system) if chunk)
 
 
-def search(question, callback):
-    # Initialize the retriever with the specified knowledge base and retrieval configuration
+def create_questions(input_text: str) -> Generator[str, None, None]:
+    """Generate multiple-choice questions from content."""
+    input_text = sanitize_input(str(input_text))
+
+    system = (
+        "You are an expert at creating multiple-choice questions. "
+        "Create questions that assess comprehension, critical thinking, and application. "
+        "Format: numbered questions with A-D options and the correct answer marked."
+    )
+    prompt = (
+        "Create 20 multiple-choice questions from this content:\n\n"
+        f"<text>{input_text}</text>"
+    )
+    return converse_stream(prompt, system_prompt=system)
+
+
+def suggest_writing_document(input_text: str) -> Generator[str, None, None]:
+    """Suggest improvements for a syllabus/course document."""
+    input_text = sanitize_input(str(input_text))
+
+    system = (
+        "You are an experienced instructional designer. Review content and suggest "
+        "improvements for: course overview, learning outcomes, structure, assessment, "
+        "materials, policies, schedule, and engagement."
+    )
+    prompt = f"Review and improve this syllabus:\n\n<text>{input_text}</text>"
+    return converse_stream(prompt, system_prompt=system)
+
+
+def search(question: str, callback) -> dict:
+    """RAG search using Amazon Knowledge Bases."""
+    question = sanitize_input(question, max_length=1000)
+
     retriever = AmazonKnowledgeBasesRetriever(
-        knowledge_base_id="F3BT8DD8E8",
-        retrieval_config={"vectorSearchConfiguration": {"numberOfResults": 1}},
+        knowledge_base_id=os.environ.get("KNOWLEDGE_BASE_ID", "F3BT8DD8E8"),
+        retrieval_config={"vectorSearchConfiguration": {"numberOfResults": 3}},
     )
 
-    # Define model-specific parameters for Claude
-    model_kwargs_claude = {"max_tokens": 2000}
-    
-    # Initialize the BedrockChat LLM with streaming enabled
     llm = BedrockChat(
-        model_id="anthropic.claude-sonnet-4-6",
-        model_kwargs=model_kwargs_claude,
+        model_id=_config.model_id,
+        model_kwargs={"max_tokens": 2000},
         streaming=True,
-        callbacks=[callback]
+        callbacks=[callback],
     )
 
-    # Set up the RetrievalQA chain using the retriever and LLM, including source documents in the return
     chain = RetrievalQA.from_chain_type(
-        llm=llm, 
-        retriever=retriever, 
-        return_source_documents=True
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=True,
     )
-    
-    # Execute the chain with the provided question and return the result
     return chain.invoke(question)

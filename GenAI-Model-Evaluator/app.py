@@ -144,6 +144,11 @@ def file_uploader_section():
         )
         
         if file:
+            # Validate file size (max 50MB for security)
+            MAX_FILE_SIZE_MB = 50
+            if file.size > MAX_FILE_SIZE_MB * 1024 * 1024:
+                st.error(f"File too large. Maximum size is {MAX_FILE_SIZE_MB}MB.")
+                return None
             file_stats = {
                 "File Name": file.name,
                 "File Size": f"{round(file.size / 1024 / 1024, 2)} MB",

@@ -85,14 +85,19 @@ def get_sampled_tokens(seconds):
 
 def get_video_info(video_bytes):
     os.makedirs("./tmp", exist_ok=True)
-    with open("./tmp/temp.mp4", "wb") as outfile:
-        outfile.write(video_bytes)
-    video = cv2.VideoCapture("./tmp/temp.mp4")
-    fps = video.get(cv2.CAP_PROP_FPS)
-    frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
-    duration = frame_count / fps
-
-    return duration, frame_count, fps
+    tmp_path = "./tmp/temp.mp4"
+    try:
+        with open(tmp_path, "wb") as outfile:
+            outfile.write(video_bytes)
+        video = cv2.VideoCapture(tmp_path)
+        fps = video.get(cv2.CAP_PROP_FPS)
+        frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
+        duration = frame_count / fps
+        video.release()
+        return duration, frame_count, fps
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
 
 
 def parse_video_and_upload_to_s3(file_path, bucket_name):
@@ -110,21 +115,29 @@ def resize_video(
     width=480,
 ):
     os.makedirs("./tmp", exist_ok=True)
-    with open("./tmp/temp.mp4", "wb") as outfile:
-        outfile.write(video_bytes)
+    tmp_path = "./tmp/temp.mp4"
+    resized_path = "./tmp/resized_temp.mp4"
+    try:
+        with open(tmp_path, "wb") as outfile:
+            outfile.write(video_bytes)
 
-    ffmpeg.input("./tmp/temp.mp4").filter("scale", width, -1).output(
-        "./tmp/resized_temp.mp4"
-    ).run(overwrite_output=True)
+        ffmpeg.input(tmp_path).filter("scale", width, -1).output(
+            resized_path
+        ).run(overwrite_output=True)
 
-    return parse_video_and_upload_to_s3("./tmp/resized_temp.mp4", bucket_name)
+        return parse_video_and_upload_to_s3(resized_path, bucket_name)
+    finally:
+        for p in (tmp_path, resized_path):
+            if os.path.exists(p):
+                os.remove(p)
 
 
 def resample_video_to_frames(video_bytes):
     os.makedirs("./tmp", exist_ok=True)
-    with open("./tmp/temp.mp4", "wb") as outfile:
+    tmp_path = "./tmp/temp.mp4"
+    with open(tmp_path, "wb") as outfile:
         outfile.write(video_bytes)
-    video = cv2.VideoCapture("./tmp/temp.mp4")
+    video = cv2.VideoCapture(tmp_path)
     frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
     fps_to_sample = 20  # Converse supports 20 images
 
@@ -145,6 +158,9 @@ def resample_video_to_frames(video_bytes):
     while len(frames) > 20:
         frames.pop(-1)
 
+    video.release()
+    if os.path.exists(tmp_path):
+        os.remove(tmp_path)
     return frames
 
 

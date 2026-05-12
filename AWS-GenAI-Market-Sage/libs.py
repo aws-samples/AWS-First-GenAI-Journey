@@ -1,117 +1,158 @@
-import boto3, json
+import os
+import sys
+import boto3
+import json
+from dataclasses import dataclass
+from typing import Generator, Any, Optional
 from dotenv import load_dotenv
+from botocore.config import Config
 from langchain.retrievers.bedrock import AmazonKnowledgeBasesRetriever
 from langchain_community.chat_models.bedrock import BedrockChat
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
-from langchain.chains import RetrievalQA
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from shared.security_utils import sanitize_input
 
 load_dotenv()
 
-def call_claude_sonet_stream(prompt):
-    prompt_config = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 2000,
-        "temperature": 0, 
-        "top_k": 0,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ],
-    }
 
-    modelId = "anthropic.claude-sonnet-4-6"
+@dataclass(frozen=True)
+class BedrockConfig:
+    model_id: str = os.environ.get('AWS_BEDROCK_MODEL_ID', 'anthropic.claude-sonnet-4-6')
+    region: str = os.environ.get('AWS_REGION', 'us-east-1')
+    guardrail_id: Optional[str] = os.environ.get('BEDROCK_GUARDRAIL_ID')
 
-    bedrock = boto3.client(service_name="bedrock-runtime")  
-    response = bedrock.invoke_model_with_response_stream(
-        body=json.dumps(prompt_config),
-        modelId=modelId,
-        accept="application/json", 
-        contentType="application/json"
+
+_config = BedrockConfig()
+
+
+def _get_client() -> Any:
+    return boto3.client(
+        'bedrock-runtime',
+        region_name=_config.region,
+        config=Config(read_timeout=120)
     )
 
-    stream = response['body']
-    if stream:
-        for event in stream:
-            chunk = event.get('chunk')
-            if chunk:
-                chunk_obj = json.loads(chunk.get('bytes').decode())
-                if 'delta' in chunk_obj:
-                    delta_obj = chunk_obj.get('delta', None)
-                    if delta_obj:
-                        text = delta_obj.get('text', None)
-                        yield text
-                    
-def rewrite_document(input_text): 
-    prompt = """Your name is good writer. You need to rewrite content: 
-        \n\nHuman: here is the content
-        <text>""" + str(input_text) + """</text>
-    \n\nAssistant: """
-    return call_claude_sonet_stream(prompt)
+
+def _build_guardrail_config() -> Optional[dict]:
+    if _config.guardrail_id:
+        return {"guardrailIdentifier": _config.guardrail_id, "guardrailVersion": "DRAFT"}
+    return None
 
 
-def summary_stream(input_text):     
-    prompt = f"""Based on the provided context, create summary of the final content. Provide summary in Vietnamese.
-        \n\nHuman: here is the content
-        <text>""" + str(input_text) + """</text>
-    \n\nAssistant: """
-    return call_claude_sonet_stream(prompt)
+def call_claude_sonet_stream(prompt: str) -> Generator[str, None, None]:
+    sanitized = sanitize_input(prompt)
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"guardContent": {"text": {"text": sanitized}}}
+            ]
+        }
+    ]
+    kwargs: dict[str, Any] = {
+        "modelId": _config.model_id,
+        "messages": messages,
+        "inferenceConfig": {"maxTokens": 2000, "temperature": 0.0, "topP": 1.0},
+    }
+    guardrail = _build_guardrail_config()
+    if guardrail:
+        kwargs["guardrailConfig"] = guardrail
 
-def query_document(question, docs): 
-    prompt = """Human: here is the content:
-        <text>""" + str(docs) + """</text>
-        Question: """ + question + """ 
-    \n\nAssistant: """
+    try:
+        client = _get_client()
+        response = client.converse_stream(**kwargs)
+        for event in response.get("stream", []):
+            if "contentBlockDelta" in event:
+                delta = event["contentBlockDelta"].get("delta", {})
+                text = delta.get("text")
+                if text:
+                    yield text
+    except Exception as e:
+        yield f"\n[Error: {str(e)}]"
 
-    return call_claude_sonet_stream(prompt)
 
-def create_questions(input_text, callback): 
-    system_prompt = """You are an expert in creating high-quality multiple-choice quesitons and answer pairs 
-    based on a given context. Based on the given context (e.g a passage, a paragraph, or a set of information), you should:
-    1. Come up with thought-provoking multiple-choice questions that assess the reader's understanding of the context. 
-    2. The questions should be clear and concise.
-    3. The answer options should be logical and relevant to the context.
+def _stream_with_system(system_prompt: str, user_text: str) -> Generator[str, None, None]:
+    sanitized = sanitize_input(user_text)
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"guardContent": {"text": {"text": sanitized}}}
+            ]
+        }
+    ]
+    kwargs: dict[str, Any] = {
+        "modelId": _config.model_id,
+        "messages": messages,
+        "system": [{"text": system_prompt}],
+        "inferenceConfig": {"maxTokens": 2000, "temperature": 0.0, "topP": 1.0},
+    }
+    guardrail = _build_guardrail_config()
+    if guardrail:
+        kwargs["guardrailConfig"] = guardrail
 
-    The multiple-choice questions and answer pairs should be in a bulleted list: 
-        1) Question: 
+    try:
+        client = _get_client()
+        response = client.converse_stream(**kwargs)
+        for event in response.get("stream", []):
+            if "contentBlockDelta" in event:
+                delta = event["contentBlockDelta"].get("delta", {})
+                text = delta.get("text")
+                if text:
+                    yield text
+    except Exception as e:
+        yield f"\n[Error: {str(e)}]"
 
-        A) Option 1
 
-        B) Option 2 
+def rewrite_document(input_text: str) -> Generator[str, None, None]:
+    system = "Your name is good writer. You need to rewrite content provided by the user."
+    return _stream_with_system(system, str(input_text))
 
-        C) Option 3 
 
-        Answer: A) Option 1 
+def summary_stream(input_text: str) -> Generator[str, None, None]:
+    system = "Based on the provided context, create summary of the final content. Provide summary in Vietnamese."
+    return _stream_with_system(system, str(input_text))
 
-         
-    Continue with additional questions and answer pairs as needed.
 
-    MAKE SURE TO INCLUDE THE FULL CORRECT ANSWER AT THE END, NO EXPLANATION NEEDED:"""
-    
-    prompt = f"""{system_prompt}. Based on the provided context, create 10 multiple-choice questions and answer pairs
-        \n\nHuman: here is the content
-        <text>""" + str(input_text) + """</text>
-    \n\nAssistant: """
-    return call_claude_sonet_stream(prompt)
+def query_document(question: str, docs: str) -> Generator[str, None, None]:
+    system = "Answer the user's question based on the provided documents."
+    user_text = f"Documents:\n{docs}\n\nQuestion: {question}"
+    return _stream_with_system(system, user_text)
 
-def suggest_writing_document(input_text): 
-    prompt = """Your name is good writer. You need to suggest and correct mistake in the essay: 
-        \n\nHuman: here is the content
-        <text>""" + str(input_text) + """</text>
-    \n\nAssistant: """
-    return call_claude_sonet_stream(prompt)
 
-def search(question, callback):
+def create_questions(input_text: str, callback: Any) -> Generator[str, None, None]:
+    system = """You are an expert in creating high-quality multiple-choice questions and answer pairs based on a given context. Based on the given context, you should:
+1. Come up with thought-provoking multiple-choice questions that assess the reader's understanding of the context.
+2. The questions should be clear and concise.
+3. The answer options should be logical and relevant to the context.
+
+The multiple-choice questions and answer pairs should be in a bulleted list:
+    1) Question:
+    A) Option 1
+    B) Option 2
+    C) Option 3
+    Answer: A) Option 1
+
+Continue with additional questions and answer pairs as needed.
+MAKE SURE TO INCLUDE THE FULL CORRECT ANSWER AT THE END, NO EXPLANATION NEEDED.
+Create 10 multiple-choice questions and answer pairs."""
+    return _stream_with_system(system, str(input_text))
+
+
+def suggest_writing_document(input_text: str) -> Generator[str, None, None]:
+    system = "Your name is good writer. You need to suggest and correct mistakes in the essay provided by the user."
+    return _stream_with_system(system, str(input_text))
+
+
+def search(question: str, callback: Any) -> dict:
     retriever = AmazonKnowledgeBasesRetriever(
         knowledge_base_id="EWVHJIY9AS",
-        retrieval_config={"vectorSearchConfiguration": 
+        retrieval_config={"vectorSearchConfiguration":
                           {"numberOfResults": 3,
-                           'overrideSearchType': "SEMANTIC", # optional
+                           'overrideSearchType': "SEMANTIC",
                            }
                           },
     )
@@ -129,14 +170,13 @@ def search(question, callback):
         {context}
         """
 
-    # Truncate the question if it's too long
     max_query_length = 1000
     truncated_question = question[:max_query_length] if len(question) > max_query_length else question
-    bedrock_client = boto3.client('bedrock-runtime', region_name = 'us-east-1')
+    bedrock_client = boto3.client('bedrock-runtime', region_name=_config.region)
 
-    model_kwargs_claude = { "temperature": 0.5, "top_p": 1}
+    model_kwargs_claude = {"temperature": 0.5, "top_p": 1}
     llm = BedrockChat(
-        model_id="anthropic.claude-sonnet-4-6",  # Updated model ID
+        model_id=_config.model_id,
         client=bedrock_client,
         model_kwargs=model_kwargs_claude,
         streaming=True,
@@ -144,54 +184,15 @@ def search(question, callback):
     )
 
     prompt = ChatPromptTemplate.from_messages(
-    [
-        SystemMessagePromptTemplate.from_template(system_prompt),
-        HumanMessagePromptTemplate.from_template("input")
-    ]
+        [
+            SystemMessagePromptTemplate.from_template(system_prompt),
+            HumanMessagePromptTemplate.from_template("input")
+        ]
     )
 
-    # Create the chain with the custom prompt
     question_answer_chain = create_stuff_documents_chain(llm, prompt)
     chain = create_retrieval_chain(retriever, question_answer_chain)
 
-    # Invoke the chain with the necessary inputs
-    return chain.invoke( {
-        "input": truncated_question  
+    return chain.invoke({
+        "input": truncated_question
     })
-
-def searchOld(question, callback):
-    retriever = AmazonKnowledgeBasesRetriever(
-        knowledge_base_id="EWVHJIY9AS",
-        retrieval_config={"vectorSearchConfiguration": 
-                          {"numberOfResults": 3,
-                           'overrideSearchType': "SEMANTIC", # optional
-                           }
-                          },
-    )
-    system_prompt = """
-        You are a financial advisor AI system with deep market insights. Impress all customers with your financial data 
-        and market trends analysis. Investigate and analyze specific trading strategies, 
-        technical analysis, and technical tools, or market structures. Provide a comprehensive overview of the chosen topic, 
-        ensuring the explanation is both in-depth and understandable for traders of all levels. 
-        Utilize your expertise and available market analysis tools to scan, filter, and evaluate potential assets for trading. 
-        Once identified, create a comprehensive list with supporting data for each asset, indicating why it meets the criteria. 
-        Ensure that all information is up-to-date and relevant to the current market conditions. 
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
-        Provide your answer in Vietnamese.
-        {context}
-        """
-    question = question
-    query = f"""{system_prompt}. Based on the provided context, provide the answer to the following question:
-    Question: {question}
-    Answer: 
-    """
-    model_kwargs_claude = {"max_tokens": 2000}
-    llm = BedrockChat(model_id="anthropic.claude-sonnet-4-6"
-                      , model_kwargs=model_kwargs_claude
-                      , streaming=True
-                      , callbacks=[callback])
-
-    chain = RetrievalQA.from_chain_type(
-        llm=llm, retriever=retriever, return_source_documents=True
-    )
-    return chain.invoke(query)

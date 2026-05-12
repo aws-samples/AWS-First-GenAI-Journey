@@ -52,6 +52,12 @@ ehthumbs.db
 .env.local
 .env.*.local
 
+# AWS credentials
+.aws/
+*.pem
+*.key
+credentials
+
 # Docker
 *.docker
 Dockerfile

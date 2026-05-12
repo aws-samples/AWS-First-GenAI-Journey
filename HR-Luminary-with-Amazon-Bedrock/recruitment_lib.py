@@ -1,4 +1,4 @@
-import os
+import os, sys
 from langchain.llms.bedrock import Bedrock
 from langchain.chains import ConversationChain
 from langchain.agents import load_tools,initialize_agent, Tool, load_tools
@@ -8,6 +8,9 @@ from langchain.agents import initialize_agent, Tool, AgentType
 
 from dotenv import load_dotenv
 load_dotenv()
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from shared.security_utils import sanitize_input
 
 def init_llm():
         
@@ -42,6 +45,7 @@ def get_rag_chat_response(input_text, streaming_callback):
     return llm.invoke(input=input_text)
 
 def rewrite_resume(input_text, streaming_callback): 
+    input_text = sanitize_input(str(input_text))
     model_parameter = {"temperature": 1, "top_p": 1, "max_tokens_to_sample": 2000}
     llm = Bedrock(
         credentials_profile_name=os.environ.get("BWB_PROFILE_NAME"), 
@@ -61,6 +65,7 @@ def rewrite_resume(input_text, streaming_callback):
 
 
 def summary_resume_stream(input_text, streaming_callback): 
+    input_text = sanitize_input(str(input_text))
     llm = get_llm(streaming_callback)
     prompt = """You are the best recruitment consultant expert, you will scan the resume and output concide content for the following informantion: 
         Contact, Experience, Skills,Certificates and suggested jobs based on the resume in a bulleted list in <response> tag.
@@ -78,6 +83,7 @@ def summary_resume_stream(input_text, streaming_callback):
 
 
 def suggested_jobs(input_text): 
+    input_text = sanitize_input(str(input_text))
     llm = init_llm()
     prompt = """You are the best recruitment consultant expert, you will scan the resume and output concise content for the following informantion: 
             suggest jobs based on the resume.
@@ -85,14 +91,12 @@ def suggested_jobs(input_text):
         \n\nHuman: here is the resume content
         <text>""" + input_text + """</text>
     \n\nAssistant: """
-    print(input_text)
     return llm.invoke(prompt)
 
     
 def get_jobs(jobs):
     tool = GoogleJobsQueryRun(api_wrapper=GoogleJobsAPIWrapper())  
     res =  tool.run(jobs)
-    print(res)
     return res
 
 def search_jobs(input_text, st_callback):
@@ -189,6 +193,8 @@ Here is the user question: {input}
     return agent
     
 def query_resume(question, resume, streaming_callback): 
+    question = sanitize_input(question, max_length=1000)
+    resume = sanitize_input(str(resume))
     llm = get_llm(streaming_callback)
     prompt = """Human: here is the resume content:
         <text>""" + str(resume) + """</text>

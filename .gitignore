@@ -1,0 +1,25 @@
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+.aws/
+credentials
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Temp files
+tmp/
+*.tmp

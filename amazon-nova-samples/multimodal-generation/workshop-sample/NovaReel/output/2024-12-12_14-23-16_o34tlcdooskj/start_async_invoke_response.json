@@ -11,5 +11,5 @@
     },
     "RetryAttempts": 0
   },
-  "invocationArn": "arn:aws:bedrock:us-east-1:590183822512:async-invoke/o34tlcdooskj"
+  "invocationArn": "arn:aws:bedrock:us-east-1:<ACCOUNT_ID>:async-invoke/o34tlcdooskj"
 }

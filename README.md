@@ -2,6 +2,8 @@
 
 A comprehensive collection of Generative AI projects powered by Amazon Bedrock, showcasing diverse applications across industries. This repository contains ready-to-deploy solutions for various use cases, from translation and education to financial analysis and HR management.
 
+> ⚠️ **Security Notice**: These are sample/demo applications intended for learning and experimentation. Before deploying to production, please implement additional security measures including: input validation and rate limiting, [Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) for prompt injection defense, PII detection and redaction for sensitive data, proper authentication and authorization, and data encryption at rest and in transit. See the `shared/security_utils.py` module for basic input sanitization utilities included in this repo.
+
 ## Projects Overview 
 
 ### Text and Language Processing
@@ -137,7 +139,20 @@ Each project includes detailed setup instructions in its respective directory. G
 
 ## Security
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for security information.
+This repo includes a `shared/security_utils.py` module with:
+- **Input sanitization** — escapes prompt-breaking XML tags, enforces length limits
+- **Prompt injection detection** — regex-based pattern matching
+- **Amazon Bedrock Guardrails integration** — `BedrockGuardrail` class wrapping the ApplyGuardrail API for content filtering, prompt attack detection, and PII protection
+
+To enable Bedrock Guardrails, set `BEDROCK_GUARDRAIL_ID` environment variable. See the [Educational-Assistant](AWS-Educational-Assistant/) for a working integration example.
+
+**References:**
+- [OWASP Top 10 for LLM & Agentic Applications (2026)](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- [Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html)
+- [Amazon Bedrock AgentCore Security](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/introduction.html)
+- [AWS Security Reference Architecture – AI Security (Feb 2026)](https://docs.aws.amazon.com/prescriptive-guidance/latest/security-reference-architecture-generative-ai/introduction.html)
+
+See also [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for reporting security issues.
 
 
 # Contributors

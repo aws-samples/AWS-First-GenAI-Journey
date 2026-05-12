@@ -1,139 +1,105 @@
+"""Uniform Detection library using Bedrock Converse API."""
+
 import os
-import boto3, json, logging
-from dotenv import load_dotenv
-from langchain_community.retrievers import AmazonKnowledgeBasesRetriever
-from langchain.chains import RetrievalQA
-from langchain_community.chat_models import BedrockChat
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
-import base64
+import sys
+import logging
+from dataclasses import dataclass
 from io import BytesIO
+from typing import Generator, Optional
+
+import boto3
+from botocore.config import Config
+from dotenv import load_dotenv
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from shared.security_utils import sanitize_input
 
 load_dotenv()
-
 logger = logging.getLogger(__name__)
 
-def call_claude_sonet_stream(prompt):
 
-    prompt_config = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 4000,
-        "temperature": 1, 
-        "top_k": 0,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                ],
-            }
-        ],
+@dataclass(frozen=True)
+class BedrockConfig:
+    model_id: str = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6")
+    region: str = os.environ.get("AWS_REGION", "us-east-1")
+
+
+_config = BedrockConfig()
+_client = boto3.client(
+    "bedrock-runtime",
+    region_name=_config.region,
+    config=Config(read_timeout=120),
+)
+
+SYSTEM_PROMPT = "You are a helpful assistant specialized in uniform detection and analysis."
+
+
+def _guardrail_config() -> Optional[dict]:
+    gid = os.environ.get("BEDROCK_GUARDRAIL_ID")
+    if gid:
+        return {"guardrailIdentifier": gid, "guardrailVersion": "DRAFT"}
+    return None
+
+
+def _stream_converse(messages: list, max_tokens: int = 4096, temperature: float = 0) -> Generator[str, None, None]:
+    """Stream response from Bedrock Converse API."""
+    kwargs: dict = {
+        "modelId": _config.model_id,
+        "messages": messages,
+        "system": [{"text": SYSTEM_PROMPT}],
+        "inferenceConfig": {"maxTokens": max_tokens, "temperature": temperature},
     }
-
-    body = json.dumps(prompt_config)
-
-    modelId = "anthropic.claude-sonnet-4-6"
-    accept = "application/json"
-    contentType = "application/json"
-
-    bedrock = boto3.client(service_name="bedrock-runtime")  
-    response = bedrock.invoke_model_with_response_stream(
-        body=body, modelId=modelId, accept=accept, contentType=contentType
-    )
-
-    stream = response['body']
-    if stream:
-        for event in stream:
-            chunk = event.get('chunk')
-            if chunk:
-                try:
-                    delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                    if delta:
-                        yield delta.get("text")
-                except (json.JSONDecodeError, UnicodeDecodeError, AttributeError) as e:
-                    logger.warning(f"Failed to parse stream chunk: {e}")
-                    continue
+    gc = _guardrail_config()
+    if gc:
+        kwargs["guardrailConfig"] = gc
+    try:
+        response = _client.converse_stream(**kwargs)
+        for event in response.get("stream", []):
+            if "contentBlockDelta" in event:
+                delta = event["contentBlockDelta"].get("delta", {})
+                text = delta.get("text")
+                if text:
+                    yield text
+    except Exception as e:
+        logger.error(f"Converse stream error: {e}")
+        raise
 
 
+def call_claude_sonet_stream(prompt: str) -> Generator[str, None, None]:
+    prompt = sanitize_input(prompt)
+    messages = [{"role": "user", "content": [{"text": prompt}]}]
+    yield from _stream_converse(messages, max_tokens=4000, temperature=1)
 
 
-#get a BytesIO object from file bytes
-def get_bytesio_from_bytes(image_bytes):
-    image_io = BytesIO(image_bytes)
-    return image_io
+def get_bytesio_from_bytes(image_bytes: bytes) -> BytesIO:
+    return BytesIO(image_bytes)
 
 
-#get a base64-encoded string from file bytes
-def get_base64_from_bytes(image_bytes):
-    resized_io = get_bytesio_from_bytes(image_bytes)
-    img_str = base64.b64encode(resized_io.getvalue()).decode("utf-8")
-    return img_str
+def get_base64_from_bytes(image_bytes: bytes) -> str:
+    import base64
+    return base64.b64encode(image_bytes).decode("utf-8")
 
 
-#load the bytes from a file on disk
-def get_bytes_from_file(file_path):
-    # Resolve to absolute path and validate it doesn't escape the working directory
+def get_bytes_from_file(file_path: str) -> bytes:
     resolved = os.path.realpath(file_path)
-    with open(resolved, "rb") as image_file:
-        file_bytes = image_file.read()
-    return file_bytes
+    with open(resolved, "rb") as f:
+        return f.read()
 
-def init(prompt, image_bytes=None):  
 
+def get_response_from_model(prompt_content: str, image_bytes: Optional[bytes] = None) -> Generator[str, None, None]:
+    prompt_content = sanitize_input(prompt_content)
+    content: list = []
     if image_bytes:
-        input_image_base64 = get_base64_from_bytes(image_bytes)
-        content = [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/jpeg", 
-                            "data": input_image_base64,
-                        },
-                    },
-                    {
-                        "type": "text",
-                        "text": prompt
-                    },
-        ]
-    else:
-         content =  [{
-                    "type": "text",
-                    "text": prompt
-                }]
-   
-    body = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 10000,
-        "temperature": 0,
-        "messages": [
-            {
-                "role": "user",
-                "content": content
+        content.append({
+            "image": {
+                "format": "jpeg",
+                "source": {"bytes": image_bytes},
             }
-        ],
-    }
-    return json.dumps(body)
+        })
+    content.append({"text": prompt_content})
+    messages = [{"role": "user", "content": content}]
+    yield from _stream_converse(messages, max_tokens=10000, temperature=0)
 
-def get_response_from_model(prompt_content, image_bytes):
-    session = boto3.Session()
-    bedrock = session.client(service_name='bedrock-runtime') #creates a Bedrock client
-    body = init(prompt_content, image_bytes)    
-    response = bedrock.invoke_model_with_response_stream(body=body, modelId="anthropic.claude-sonnet-4-6", contentType="application/json", accept="application/json")
-        
-    stream = response['body']
-    if stream:
-        for event in stream:
-            chunk = event.get('chunk')
-            if chunk:
-                try:
-                    delta = json.loads(chunk.get('bytes').decode()).get("delta")
-                    if delta:
-                        yield delta.get("text")
-                except (json.JSONDecodeError, UnicodeDecodeError, AttributeError) as e:
-                    logger.warning(f"Failed to parse stream chunk: {e}")
-                    continue
 
 prizm = """
     {
@@ -170,4 +136,4 @@ prizm = """
       "lifestage_group_alias": "Y3",
       "social_group_alias": "U3"
   }
-""" 
+"""

@@ -7,6 +7,12 @@ ENV/
 streamlit_env/
 *.env
 
+# AWS credentials
+.aws/
+*.pem
+*.key
+credentials
+
 # Python cache files
 __pycache__/
 *.py[cod]

@@ -19,3 +19,12 @@ notebook/
 analyst/
 
 .vscode/
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+.aws/
+credentials
+
