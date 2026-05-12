@@ -384,7 +384,7 @@
     },
     {
       "Parameters": {
-        "LambdaFunctionARN": "arn:aws:lambda:us-west-2:884189903498:function:dev-connectvoice-start-streaming",
+        "LambdaFunctionARN": "arn:aws:lambda:us-west-2:<YOUR_ACCOUNT_ID>:function:dev-connectvoice-start-streaming",
         "InvocationTimeLimitSeconds": "7",
         "LambdaInvocationAttributes": {
           "kvsStreamArn": "$.MediaStreams.Customer.Audio.StreamARN",
@@ -650,7 +650,7 @@
     },
     {
       "Parameters": {
-        "LambdaFunctionARN": "arn:aws:lambda:us-west-2:884189903498:function:dev-connectvoice-virtual-agent",
+        "LambdaFunctionARN": "arn:aws:lambda:us-west-2:<YOUR_ACCOUNT_ID>:function:dev-connectvoice-virtual-agent",
         "InvocationTimeLimitSeconds": "7",
         "ResponseValidation": {
           "ResponseType": "STRING_MAP"
