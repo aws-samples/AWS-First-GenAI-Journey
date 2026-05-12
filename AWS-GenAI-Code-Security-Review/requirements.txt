@@ -51,7 +51,7 @@ tqdm==4.67.1
 typing_extensions==4.12.2
 tzdata==2024.2
 tzlocal==5.2
-urllib3==2.3.0
+urllib3==2.7.0
 validators==0.34.0
 watchdog==6.0.0
 yarl==1.18.3
