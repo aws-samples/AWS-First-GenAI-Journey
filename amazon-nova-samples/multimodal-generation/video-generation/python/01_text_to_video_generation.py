@@ -31,8 +31,21 @@ def generate_video(s3_destination_bucket, video_prompt, model_id=DEFAULT_MODEL_I
     # Set up the S3 client
     s3_client = boto3.client("s3")
 
-    # Create the S3 bucket
+    # Create the S3 bucket with encryption and public access block
     s3_client.create_bucket(Bucket=s3_destination_bucket)
+    s3_client.put_bucket_encryption(
+        Bucket=s3_destination_bucket,
+        ServerSideEncryptionConfiguration={
+            'Rules': [{'ApplyServerSideEncryptionByDefault': {'SSEAlgorithm': 'AES256'}}]
+        }
+    )
+    s3_client.put_public_access_block(
+        Bucket=s3_destination_bucket,
+        PublicAccessBlockConfiguration={
+            'BlockPublicAcls': True, 'IgnorePublicAcls': True,
+            'BlockPublicPolicy': True, 'RestrictPublicBuckets': True
+        }
+    )
 
     # Create the Bedrock Runtime client
     bedrock_runtime = boto3.client("bedrock-runtime")

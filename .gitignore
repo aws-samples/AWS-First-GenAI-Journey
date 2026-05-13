@@ -1,0 +1,12 @@
+.env
+.env.*
+*.pem
+*.key
+.aws/
+credentials
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+venv/
+tmp/
