@@ -1,0 +1,13 @@
+# =============================================================================
+# strands.txt — AWS Strands Agents stack
+#
+# Usage:
+#   -r ../requirements/strands.txt
+# =============================================================================
+
+-r base.txt
+
+# Strands Agents framework
+strands-agents>=0.3.0
+strands-agents-tools>=0.1.0
+mcp>=1.0.0

@@ -10,7 +10,7 @@ class RAGConfig:
     region: str = os.environ.get("AWS_REGION", "us-east-1")
     kb_id: str = os.environ.get("BEDROCK_KB_ID", "")
     s3_bucket: str = os.environ.get("S3_BUCKET", "")
-    model_id: str = os.environ.get("MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0")
+    model_id: str = os.environ.get("MODEL_ID", "anthropic.claude-sonnet-4-6")
 
 
 def index_document(file_bytes: bytes, file_name: str, config: RAGConfig) -> str:

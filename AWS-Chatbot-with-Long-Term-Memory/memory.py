@@ -31,7 +31,7 @@ def summarize_history(user_id):
         return "No conversation history yet."
     transcript = "\n".join(f"{m['role']}: {m['content'][0]['text']}" for m in history)
     resp = bedrock.converse(
-        modelId="anthropic.claude-3-haiku-20240307-v1:0",
+        modelId="anthropic.claude-sonnet-4-6",
         messages=[{"role": "user", "content": [{"text": f"Summarize this conversation in 2-3 sentences:\n{transcript}"}]}],
     )
     return resp["output"]["message"]["content"][0]["text"]

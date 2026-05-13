@@ -199,6 +199,9 @@ ALLOWED_LEGACY_FILES = {
     "Generate-images-using-Amazon-Bedrock-with-stability-diffusion-model/app.py",
     # Nova samples reference their own models
     "amazon-nova-samples/multimodal-understanding/sample-apps/01-multimodal-with-helper-libraries/mm_understanding.py",
+    # Prompt toolkit and Guardrails demo show model selection lists — legacy IDs intentional
+    "AWS-Prompt-Engineering-Toolkit/app.py",
+    "AWS-Bedrock-Guardrails-Demo/app.py",
 }
 
 

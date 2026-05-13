@@ -11,7 +11,7 @@ def analyze_template(template_content: str, filename: str) -> list:
     """Analyze an infrastructure template using Amazon Bedrock Converse API."""
     client = boto3.client("bedrock-runtime")
     response = client.converse(
-        modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+        modelId="anthropic.claude-sonnet-4-6",
         system=[{"text": SYSTEM_PROMPT}],
         messages=[
             {

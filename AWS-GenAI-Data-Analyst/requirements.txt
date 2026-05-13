@@ -1,4 +1,5 @@
-boto3>=1.35.0
-streamlit>=1.30.0
+-r ../requirements/base.txt
+
+# Project-specific — data analysis & visualization
 pandas>=2.0.0
 matplotlib>=3.7.0

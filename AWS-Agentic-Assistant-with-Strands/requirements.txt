@@ -1,5 +1,1 @@
-strands-agents>=0.3.0
-strands-agents-tools>=0.1.0
-mcp>=1.0.0
-streamlit>=1.30.0
-boto3>=1.35.0
+-r ../requirements/strands.txt
