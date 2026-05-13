@@ -31,7 +31,7 @@ if st.button("Process", type="primary"):
         with st.spinner("Processing..."):
             try:
                 response = bedrock.converse(
-                    modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+                    modelId="anthropic.claude-sonnet-4-6",
                     messages=[{"role": "user", "content": [{"text": user_msg}]}],
                     system=[{"text": SYSTEM_PROMPTS[action]}],
                     inferenceConfig={"maxTokens": 1024, "temperature": 0.3},

@@ -61,7 +61,7 @@ Transcript:
 
         with st.spinner("Summarizing with Bedrock..."):
             response = bedrock.converse(
-                modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+                modelId="anthropic.claude-sonnet-4-6",
                 messages=[{"role": "user", "content": [{"text": prompt}]}],
             )
             summary = response["output"]["message"]["content"][0]["text"]

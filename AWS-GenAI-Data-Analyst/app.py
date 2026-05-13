@@ -41,7 +41,7 @@ if uploaded_file:
         )
 
         response = bedrock.converse(
-            modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+            modelId="anthropic.claude-sonnet-4-6",
             messages=[{"role": "user", "content": [{"text": prompt}]}],
             inferenceConfig={"maxTokens": 1024, "temperature": 0.1},
         )

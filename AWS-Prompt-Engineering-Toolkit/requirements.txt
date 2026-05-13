@@ -1,3 +1,4 @@
-boto3>=1.35.0
-streamlit>=1.30.0
+-r ../requirements/base.txt
+
+# Project-specific
 pandas>=2.0.0

@@ -8,7 +8,7 @@ def extract_text(pdf_file):
     return "\n".join(page.extract_text() or "" for page in reader.pages)
 
 
-def compare_documents(text1, text2, model_id="anthropic.claude-3-sonnet-20240229-v1:0"):
+def compare_documents(text1, text2, model_id="anthropic.claude-sonnet-4-6"):
     """Compare two documents using Bedrock Converse API and return structured differences."""
     client = boto3.client("bedrock-runtime")
     prompt = (

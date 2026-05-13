@@ -23,7 +23,7 @@ def init_config() -> RAGConfig:
         region = st.text_input("AWS Region", value=os.environ.get("AWS_REGION", "us-east-1"))
         kb_id = st.text_input("Knowledge Base ID", value=os.environ.get("BEDROCK_KB_ID", ""))
         s3_bucket = st.text_input("S3 Bucket", value=os.environ.get("S3_BUCKET", ""))
-        model_id = st.text_input("Model ID", value=os.environ.get("MODEL_ID", "anthropic.claude-3-sonnet-20240229-v1:0"))
+        model_id = st.text_input("Model ID", value=os.environ.get("MODEL_ID", "anthropic.claude-sonnet-4-6"))
     return RAGConfig(region=region, kb_id=kb_id, s3_bucket=s3_bucket, model_id=model_id)
 
 

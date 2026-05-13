@@ -3,7 +3,7 @@ import boto3
 from memory import save_message, get_history, summarize_history
 
 bedrock = boto3.client("bedrock-runtime")
-MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
+MODEL_ID = "anthropic.claude-sonnet-4-6"
 
 st.set_page_config(page_title="Chatbot with Memory", page_icon="🧠")
 st.title("🧠 Chatbot with Long-Term Memory")
