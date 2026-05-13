@@ -1,11 +1,12 @@
 """Voice AI Agent using Amazon Nova Sonic + Strands SDK."""
 import json
+import os
 import boto3
 import numpy as np
 import sounddevice as sd
 from strands import Agent, tool
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+bedrock = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 MODEL_ID = "amazon.nova-sonic-v1:0"
 SAMPLE_RATE = 16000
 

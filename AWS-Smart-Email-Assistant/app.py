@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import boto3
 
@@ -11,7 +12,7 @@ SYSTEM_PROMPTS = {
     "Translate": "You are a translator. Translate the email thread to the target language specified by the user. Preserve formatting and tone.",
 }
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+bedrock = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
 email_thread = st.text_area("Paste your email thread:", height=250, placeholder="Paste the email conversation here...")
 action = st.selectbox("Choose an action:", list(SYSTEM_PROMPTS.keys()))
