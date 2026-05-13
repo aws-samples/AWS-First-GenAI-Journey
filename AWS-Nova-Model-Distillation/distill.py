@@ -1,9 +1,10 @@
 """Amazon Nova Model Distillation - create smaller, faster models from larger ones."""
 
+import os
 import boto3
 import time
 
-bedrock = boto3.client("bedrock", region_name="us-east-1")
+bedrock = boto3.client("bedrock", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
 
 def start_distillation_job(

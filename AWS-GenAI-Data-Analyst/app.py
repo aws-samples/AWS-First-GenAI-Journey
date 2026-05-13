@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,7 +8,7 @@ import json
 st.set_page_config(page_title="AWS GenAI Data Analyst", layout="wide")
 st.title("📊 Chat with Your Data")
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+bedrock = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 
 uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 

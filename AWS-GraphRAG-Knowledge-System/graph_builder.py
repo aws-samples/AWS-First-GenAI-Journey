@@ -1,8 +1,9 @@
 import json
+import os
 import boto3
 import networkx as nx
 
-bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
+bedrock = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_REGION", "us-east-1"))
 MODEL_ID = "anthropic.claude-sonnet-4-6"
 
 
