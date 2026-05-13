@@ -8,7 +8,7 @@
 -r base.txt
 
 # LangChain core
-langchain==0.3.7
+langchain==0.3.30
 langchain-community==0.3.27
 langchain-aws==0.2.7
 langchain-experimental==0.3.4
