@@ -60,7 +60,7 @@ langchain-community==0.3.22
 langchain-core>=0.2.20,<0.3.0
 langchain-openai==0.1.8
 langchain-text-splitters==0.2.1
-langsmith==0.1.79
+langsmith==0.8.0
 lxml==5.2.1
 Markdown==3.6
 markdown-it-py==3.0.0
