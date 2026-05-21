@@ -9,19 +9,19 @@
   "author": "jospas@amazon.com",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.499.0",
-    "@aws-sdk/client-kinesis-video": "^3.490.0",
-    "@aws-sdk/client-kinesis-video-media": "^3.490.0",
-    "@aws-sdk/client-sagemaker": "^3.492.0",
-    "@aws-sdk/client-sagemaker-runtime": "^3.490.0",
+    "@aws-sdk/client-dynamodb": "^3.1051.0",
+    "@aws-sdk/client-kinesis-video": "^3.1051.0",
+    "@aws-sdk/client-kinesis-video-media": "^3.1051.0",
+    "@aws-sdk/client-sagemaker": "^3.1051.0",
+    "@aws-sdk/client-sagemaker-runtime": "^3.1051.0",
     "punycode": "^2.3.1",
-    "serverless": "^3.38.0"
+    "serverless": "^4.36.1"
   },
   "dependencies": {
     "@anthropic-ai/bedrock-sdk": "^0.9.1",
     "dayjs": "^1.11.10",
     "ebml-stream": "^1.0.3",
-    "uuid": "^9.0.1",
+    "uuid": "^14.0.0",
     "xml2js": "^0.6.2"
   }
 }
