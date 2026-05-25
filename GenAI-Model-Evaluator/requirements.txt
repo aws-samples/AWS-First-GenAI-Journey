@@ -80,7 +80,7 @@ pydantic==2.7.4
 pydantic_core==2.18.4
 pydeck==0.8.1b0
 Pygments==2.17.2
-pymdown-extensions==10.7.1
+pymdown-extensions==10.21.3
 pyparsing==3.1.2
 pysbd==0.3.4
 python-dateutil==2.9.0.post0
