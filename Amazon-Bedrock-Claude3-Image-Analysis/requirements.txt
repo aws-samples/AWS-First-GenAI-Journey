@@ -45,7 +45,7 @@ streamlit==1.41.1
 tenacity==9.0.0
 toml==0.10.2
 toolz==1.0.0
-tornado==6.4.2
+tornado==6.5.7
 typing_extensions==4.12.2
 tzdata==2024.2
 tzlocal==5.2
