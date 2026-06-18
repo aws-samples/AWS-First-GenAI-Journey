@@ -1,13 +1,10 @@
 -r ../requirements/base.txt
 
-# Project-specific (fully pinned lockfile for reproducibility)
+# Project-specific
 altair==5.2.0
 attrs==23.2.0
 blinker==1.7.0
-boto3==1.35.58
-botocore==1.35.58
 cachetools==5.3.3
-certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
 gitdb==4.0.11
@@ -24,24 +21,17 @@ mdurl==0.1.2
 numpy==1.26.4
 packaging==23.2
 pandas==2.2.1
-pillow==12.1.0
 pip==24.3.1
-protobuf==5.29.4
 pyarrow==23.0.1
 pydeck==0.9.1
 Pygments==2.18.0
 python-dateutil==2.9.0.post0
-python-dotenv==1.0.1
 pytz==2024.2
 referencing==0.35.1
-requests==2.32.3
 rich==13.9.4
 rpds-py==0.22.3
-s3transfer==0.10.4
-setuptools==78.1.1
 six==1.17.0
 smmap==5.0.1
-streamlit==1.41.1
 tenacity==9.0.0
 toml==0.10.2
 toolz==1.0.0
@@ -49,7 +39,6 @@ tornado==6.4.2
 typing_extensions==4.12.2
 tzdata==2024.2
 tzlocal==5.2
-urllib3==2.7.0
 validators==0.34.0
 wheel==0.45.1
 zipp==3.21.0
