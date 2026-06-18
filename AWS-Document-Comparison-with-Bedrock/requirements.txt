@@ -1,4 +1,1 @@
 -r ../requirements/langchain.txt
-
-# Project-specific
-pypdf>=4.0.0
