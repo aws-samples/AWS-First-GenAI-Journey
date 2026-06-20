@@ -14,7 +14,7 @@ langchain-aws==0.2.7
 langchain-experimental==0.3.4
 
 # Document processing
-pypdf==6.12.0
+pypdf==6.13.3
 PyPDF2==3.0.1
 
 # Data
