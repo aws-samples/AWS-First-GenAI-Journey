@@ -9,7 +9,7 @@
 
 # ML frameworks
 transformers==5.5.0
-torch==2.12.0
+torch==2.13.0
 numpy==1.26.4
 
 # Vector store
