@@ -10,4 +10,4 @@
 # Strands Agents framework
 strands-agents==1.39.0
 strands-agents-tools==0.5.2
-mcp==1.27.1
+mcp==1.28.1
