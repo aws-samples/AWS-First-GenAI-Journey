@@ -2,4 +2,4 @@
 
 # Project-specific (direct deps only; transitive deps resolved by pip)
 chardet==5.2.0
-GitPython==3.1.43
+GitPython==3.1.57
