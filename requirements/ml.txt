@@ -8,7 +8,7 @@
 -r base.txt
 
 # ML frameworks
-transformers==5.5.0
+transformers==5.10.1
 torch==2.13.0
 numpy==1.26.4
 
