@@ -8,6 +8,6 @@
 -r base.txt
 
 # Strands Agents framework
-strands-agents==1.43.0
+strands-agents==1.48.0
 strands-agents-tools==0.5.2
 mcp==1.30.0
