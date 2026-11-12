@@ -48,7 +48,15 @@ def main():
 
             st.write('Analysis complete.')
 
-            report_path = f"report/{url.split('/')[-1].replace('.git', '')}" if 'http' in url else f"report/{os.path.basename(url)}"
+            report_root = os.path.realpath("report")
+            raw_name = url.split('/')[-1].replace('.git', '') if 'http' in url else os.path.basename(url)
+            safe_name = _sanitize_name(raw_name)
+            report_path = os.path.realpath(os.path.join(report_root, safe_name))
+
+            if os.path.commonpath([report_root, report_path]) != report_root:
+                st.error("Invalid report path.")
+                return
+
             st.write(f"Report path: {report_path}") 
             
             if os.path.exists(report_path):
@@ -56,7 +64,8 @@ def main():
                 if reports:
                     for report in reports:
                         try:
-                            with open(f"report/{url.split('/')[-1].replace('.git', '')}/{report}", 'r') as file:
+                            report_file_path = os.path.join(report_path, report)
+                            with open(report_file_path, 'r') as file:
                                 report_content = file.read()
                                 st.markdown(report_content) 
                         except Exception as e:
