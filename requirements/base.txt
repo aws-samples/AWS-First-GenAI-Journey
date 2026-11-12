@@ -23,6 +23,6 @@ Pillow==13.0.0
 python-dotenv==1.2.2
 requests==2.33.0
 urllib3==2.8.0
-certifi==2024.8.30
+certifi==2026.10.18
 setuptools==84.1.0
 protobuf==5.29.6
