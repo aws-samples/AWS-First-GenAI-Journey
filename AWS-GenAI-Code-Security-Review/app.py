@@ -8,7 +8,7 @@ import chardet
 def _sanitize_name(name):
     """Sanitize a name to prevent path traversal."""
     sanitized = re.sub(r'[^a-zA-Z0-9._-]', '_', name)
-    sanitized = sanitized.lstrip('.')
+    sanitized = sanitized.replace('..', '').lstrip('.')
     return sanitized or 'unnamed'
 
 def analyze_uploaded_file(uploaded_file):
@@ -48,32 +48,35 @@ def main():
 
             st.write('Analysis complete.')
 
-            report_path = os.path.join("report", _sanitize_name(url.split('/')[-1].replace('.git', ''))) if 'http' in url else os.path.join("report", _sanitize_name(os.path.basename(url)))
+            report_root = os.path.realpath("report")
+            raw_name = url.split('/')[-1].replace('.git', '') if 'http' in url else os.path.basename(url)
+            safe_name = _sanitize_name(raw_name)
+
+            if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,127}', safe_name):
+                st.error("Invalid repository name for report path.")
+                return
+
+            report_path = os.path.realpath(os.path.join(report_root, safe_name))
+
+            if os.path.commonpath([report_root, report_path]) != report_root:
+                st.error("Invalid report path.")
+                return
+
             st.write(f"Report path: {report_path}") 
             
             if os.path.exists(report_path):
-                # Resolve the real path to prevent symlink-based traversal
-                real_report_path = os.path.realpath(report_path)
-                allowed_base = os.path.realpath("report")
-                if not real_report_path.startswith(allowed_base):
-                    st.error("Invalid report path detected.")
+                reports = [f for f in os.listdir(report_path) if f.endswith('.md')]
+                if reports:
+                    for report in reports:
+                        try:
+                            report_file_path = os.path.join(report_path, report)
+                            with open(report_file_path, 'r') as file:
+                                report_content = file.read()
+                                st.markdown(report_content) 
+                        except Exception as e:
+                            st.error(f"Error reading the report: {e}")
                 else:
-                    reports = [f for f in os.listdir(real_report_path) if f.endswith('.md')]
-                    if reports:
-                        for report in reports:
-                            try:
-                                report_file = os.path.join(real_report_path, report)
-                                # Validate the final file path stays within the report directory
-                                if not os.path.realpath(report_file).startswith(allowed_base):
-                                    st.error(f"Invalid report file path: {report}")
-                                    continue
-                                with open(report_file, 'r') as file:
-                                    report_content = file.read()
-                                    st.markdown(report_content) 
-                            except Exception as e:
-                                st.error(f"Error reading the report: {e}")
-                    else:
-                        st.warning('No reports found in the selected directory.')
+                    st.warning('No reports found in the selected directory.')
             else:
                 st.warning(f"Report path does not exist: {report_path}")
 

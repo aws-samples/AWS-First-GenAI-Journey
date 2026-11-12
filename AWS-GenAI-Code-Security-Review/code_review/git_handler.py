@@ -1,4 +1,5 @@
 import git
+import re
 import os
 import re
 import sys
@@ -25,6 +26,16 @@ BLACKLIST = [
 ]
 
 output_messages = []
+
+def _sanitize_name(name):
+    """Sanitize a name to prevent path traversal. Only allow alphanumeric, hyphens, underscores, and dots."""
+    sanitized = re.sub(r'[^a-zA-Z0-9._-]', '_', name)
+    # Remove path traversal sequences and leading dots
+    sanitized = sanitized.replace('..', '')
+    sanitized = sanitized.lstrip('.')
+    if not sanitized:
+        sanitized = 'unnamed'
+    return sanitized
 
 def clear_report_directory():
     """Clear the 'report' directory before running analysis."""
