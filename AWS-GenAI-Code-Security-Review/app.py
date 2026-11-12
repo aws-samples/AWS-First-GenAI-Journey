@@ -51,6 +51,11 @@ def main():
             report_root = os.path.realpath("report")
             raw_name = url.split('/')[-1].replace('.git', '') if 'http' in url else os.path.basename(url)
             safe_name = _sanitize_name(raw_name)
+
+            if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,127}', safe_name):
+                st.error("Invalid repository name for report path.")
+                return
+
             report_path = os.path.realpath(os.path.join(report_root, safe_name))
 
             if os.path.commonpath([report_root, report_path]) != report_root:
